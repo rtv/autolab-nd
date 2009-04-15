@@ -1,0 +1,8 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+
+Name: autolab-nd
+Description: Nearness Diagram local obstacle avoidance implmentation
+Version: @VERSION@
+Requires: 
+Libs: -L${prefix}/lib -lautolab-nd
+Cflags: -I${prefix}/include/autolab-nd-@APIVERSION@
