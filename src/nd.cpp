@@ -50,7 +50,8 @@
  *
  ***************************************************************************/
 #include "nd.h"
-#include "string.h"
+#include "printerror.h"
+#include <string.h>
 
 /** Dimension of robot in front of wheels [m] */
 const float FRONT_DIMENSION = 0.4;
@@ -177,7 +178,7 @@ bool CNd::hasActiveGoal()
   return mFgActiveGoal;
 }
 //---------------------------------------------------------------------------
-void CNd::setGoal ( CPose goal )
+void CNd::setGoal ( CPose2d goal )
 {
   mGoal = goal;
   mFgActiveGoal = true;
@@ -218,8 +219,7 @@ void CNd::processSensors()
         // convert to the odometric frame and add to the obstacle list
         mObstacles.punto[idx].x = ( mRobotPose.mX + rx * cosR - ry * sinR );
         mObstacles.punto[idx].y = ( mRobotPose.mY + rx * sinR + ry * cosR );
-      }
-      else {
+      } else {
         mObstacles.punto[idx].x = 0;
         mObstacles.punto[idx].y = 0;
       }
@@ -229,7 +229,7 @@ void CNd::processSensors()
   }
 }
 //---------------------------------------------------------------------------
-void CNd::update ( CPose robotPose )
+void CNd::update ( CPose2d robotPose )
 {
   TVelocities *cmdVel;
   TCoordenadas goal;
@@ -254,7 +254,8 @@ void CNd::update ( CPose robotPose )
   processSensors();
 
   if ( mObstacles.longitud == 0 ) {
-    PRT_ERR1 ( "%s: No sensor data available, did you register a range finder ?", mRobotName );
+    PRT_ERR1 ( "%s: No sensor data available, did you register a range finder ?",
+               mRobotName );
     return;
   }
 
@@ -275,8 +276,7 @@ void CNd::update ( CPose robotPose )
     PRT_MSG1 ( 6, "%s: At goal", mRobotName );
     mFgAtGoal = true;
     return;
-  }
-  else {
+  } else {
     // are we close enough in distance?
     if ( ( gDx < mDistEps ) || ( mTurningInPlace ) ) {
       PRT_MSG1 ( 9, "%s: Turning in place", mRobotName );
@@ -303,8 +303,7 @@ void CNd::update ( CPose robotPose )
         mFgActiveGoal = false;
         PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName );
         return;
-      }
-      else {
+      } else {
         mFgStall = false;
       }
       // we are turning in place, so ignore translational speed command
@@ -317,15 +316,13 @@ void CNd::update ( CPose robotPose )
         mRotateStartTime = timeStamp();
         mRotateMinError = fabs ( gDa );
         mTurningInPlace = true;
-      }
-      else {
+      } else {
         // Are we making progress?
         if ( fabs ( gDa ) < mRotateMinError ) {
           // yes; reset the time
           mRotateStartTime = timeStamp();
           mRotateMinError = fabs ( gDa );
-        }
-        else {
+        } else {
           // no; have we run out of time?
           if ( ( timeStamp() - mRotateStartTime ) > mRotateStuckTime ) {
             PRT_MSG1 ( 6, "%s: Ran out of time trying to attain goal heading", mRobotName );
@@ -351,8 +348,7 @@ void CNd::update ( CPose robotPose )
            ( fabs ( oDa ) > mTranslateStuckAngle ) ) {
         mLastRobotPose = mRobotPose;
         mTranslateStartTime = timeStamp();
-      }
-      else {
+      } else {
         // Has it been long enough?
         float t;
         t = timeStamp();
@@ -379,8 +375,7 @@ void CNd::update ( CPose robotPose )
         // Also reverse the robot's geometry (it may be asymmetric
         // front-to-back)
         setDirection ( -1 );
-      }
-      else
+      } else
         setDirection ( 1 );
 
       cmdVel = IterarND ( goal,
@@ -397,8 +392,7 @@ void CNd::update ( CPose robotPose )
         mFgActiveGoal = false;
         PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName );
         return;
-      }
-      else {
+      } else {
 
         mFgStall = false;
         mVCmd = cmdVel->v;
@@ -416,8 +410,7 @@ void CNd::update ( CPose robotPose )
       mFgActiveGoal = false;
       PRT_MSG1 ( 9, "%s: ND failed to reach goal ?!", mRobotName );
       return;
-    }
-    else {
+    } else {
       mVCmd = threshold ( mVCmd, mVMin, mVMax );
 
       if ( !mVCmd )
@@ -446,8 +439,7 @@ float CNd::angleDiff ( float a, float b )
   if ( fabs ( d1 ) < fabs ( d2 ) ) {
     //printf ( "angleDiff(%f %f) = %f (%f) \n", R2D ( a ), R2D ( b ), R2D ( d1 ), R2D ( d2 ) );
     return ( d1 );
-  }
-  else {
+  } else {
     //printf ( "angleDiff(%f %f) = %f (%f) \n", R2D ( a ), R2D ( b ), R2D ( d2 ), R2D ( d1 ) );
     return ( d2 );
   }
@@ -467,8 +459,7 @@ void CNd::setDirection ( int dir )
     // Distance to the back
     mNDparam.back = BACK_DIMENSION + mSafetyDist;
     InicializarND ( &mNDparam );
-  }
-  else {
+  } else {
     // Distance to the front
     mNDparam.front = BACK_DIMENSION + mSafetyDist;
     // Distance to the back
@@ -489,8 +480,7 @@ float CNd::threshold ( float v, float vMin, float vMax )
       v = MIN ( v, vMax );
       v = MAX ( v, vMin );
       return ( v );
-    }
-    else {
+    } else {
       v = MAX ( v, -vMax );
       v = MIN ( v, -vMin );
       return ( v );

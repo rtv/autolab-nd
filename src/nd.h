@@ -37,12 +37,13 @@
 #define CND_H
 
 #include "nd_alg.h"
-#include "common.h"
+#include "pose2d.h"
 #include "utilities.h"
 #include "error.h"
 #include "rangefinder.h"
 
 const int MAX_ND_SENSORS = 3;
+using namespace Rapi;
 
 /**
  * Rapi interface to Nearest Distance obstacle avoidance. This is a
@@ -92,17 +93,17 @@ class CNd
      * Updates the algorithm
      * @param pose current pose of robot (local coordinate system)
      */
-    void update(CPose pose );
+    void update(CPose2d pose );
     /**
      * Sets the goal for the algorithm in robot local coordinates
      * @param goal to get to in robot local coordinates
      */
-    void setGoal(CPose goal);
+    void setGoal(CPose2d goal);
     /**
      * Gets the current goal
      * @return goal
      */
-    CPose getGoal() { return mGoal; };
+    CPose2d getGoal() { return mGoal; };
     /**
      * Checks if we have an active goal, an active goal is a goal that
      * is set but has not been reached yet
@@ -167,11 +168,11 @@ class CNd
     /** Name of robot */
     char mRobotName[20];
     /** Pose of robot */
-    CPose mRobotPose;
+    CPose2d mRobotPose;
     /** Pose of robot from last time step */
-    CPose mLastRobotPose;
+    CPose2d mLastRobotPose;
     /** Goal to drive to */
-    CPose mGoal;
+    CPose2d mGoal;
     /** Distance epsilon, basically a threshold when things are close enough [m] */
     float mDistEps;
     /** Angle epsilon, basically a threshold when things are close enough [rad] */

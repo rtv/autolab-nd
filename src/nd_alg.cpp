@@ -14,6 +14,7 @@
 
 #include "nd_alg.h"
 #include "nd2_alg.h"
+#include "printerror.h"
 #include <assert.h>
 //#include <stdlib.h>
 
@@ -490,7 +491,8 @@ static int ObjetivoAlcanzable ( TInfoND *nd, TRegion *region, int direccion_tipo
       // en el rect�ngulo que consideramos, pasamos al siguiente sector.
       continue;
 
-    if ( DISTANCIA_CUADRADO2 ( p, objetivo_intermedio ) < limite ) // Si el objetivo intermedio
+    if ( DISTANCIA_CUADRADO2 ( p, objetivo_intermedio ) < limite ) 
+      // Si el objetivo intermedio
       // est� en colisi�n con el obst�culo, es inalcanzable.
       return 0; // Objetivo intermedio inalcanzable.
 

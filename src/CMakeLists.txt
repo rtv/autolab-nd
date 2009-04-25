@@ -1,19 +1,38 @@
 
-
 SET( TARGET ${PROJECT_NAME} )
 
-SET( HEADERS  
-	  nd.h
+INCLUDE(FindPkgConfig)
+PKG_SEARCH_MODULE( RAPI REQUIRED autolab-rapi  )
+
+
+IF( RAPI_FOUND )
+  MESSAGE( STATUS ${INDENT} "Rapi version ${RAPI_VERSION} detected at ${RAPI_PREFIX}" )
+  MESSAGE( STATUS "    RAPI_CFLAGS  = ${RAPI_CFLAGS}" )
+  MESSAGE( STATUS "    RAPI_LDFLAGS = ${RAPI_LDFLAGS}" )
+  MESSAGE( STATUS "    RAPI_INCLUDE = ${RAPI_INCLUDE_DIRS}" )
+  MESSAGE( STATUS "    RAPI_LIBS    = ${RAPI_LIBRARIES}" )
+ELSE( RAPI_FOUND )
+  MESSAGE( ${INDENT} "Rapi not detected" )
+ENDIF( RAPI_FOUND )
+
+SET( HEADERS
+  nd.h
 )
 
-SET( SOURCES 
-	  error.c
-	  geometria.cpp
-	  utilities.cpp
-	  nd.cpp
-	  nd_alg.cpp
-	  common.cpp
-	  rangefinder.cpp 
+SET( SOURCES
+  geometria.cpp
+  nd.cpp
+  nd_alg.cpp
+)
+
+INCLUDE_DIRECTORIES(
+  ${RAPI_INCLUDE_DIRS}
+)
+
+LINK_DIRECTORIES( ${RAPI_LIBRARY_DIRS} )
+
+LINK_LIBRARIES( ${TARGET}
+  ${RAPI_LIBRARIES}
 )
 
 # build a shared library
@@ -21,12 +40,12 @@ ADD_LIBRARY( ${TARGET} SHARED ${SOURCES} )
 
 # give the shared library a version number
 SET_TARGET_PROPERTIES( ${TARGET} PROPERTIES
-		       VERSION ${VERSION}
+  VERSION ${VERSION}
 )
 
 INSTALL(TARGETS ${TARGET}
-		  LIBRARY DESTINATION lib )
+  LIBRARY DESTINATION lib )
 
 INSTALL(FILES ${HEADERS}
-        DESTINATION include/${PROJECT_NAME}-${APIVERSION}
+  DESTINATION include/${PROJECT_NAME}-${APIVERSION}
 )
