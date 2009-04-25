@@ -1,0 +1,4 @@
+ND depends on autolab-rapi. This library can be found at
+
+git://github.com/jwawerla/autolab-rapi.git
+
