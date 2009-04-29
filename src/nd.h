@@ -56,13 +56,13 @@ using namespace Rapi;
  *
  * J. Minguez, J. Osuna, L. Montano.
  * A Divide and Conquer Strategy based on Situations to Achieve Reactive
- * Collision Avoidance in Troublesome Scenarios. In IEEE International 
+ * Collision Avoidance in Troublesome Scenarios. In IEEE International
  * Conference on Robotics and Automation (ICRA 2004), 2004. New Orleans, USA.
  *
  * Minguez's source code contains no license information, but has been
  * distributed with Player (http://playerstage.org) for several years
  * under LGPLv2. The nd_alg.h/cpp files are taken from the Player
- * distribution. 
+ * distribution.
  *
  * @author Jens Wawerla <jwawerla@sfu.ca>
  * @verion 0.1 - 01/2008
@@ -71,14 +71,14 @@ class CNd
 {
   public:
     /** Default constructor */
-    CNd(const char* robotname = NULL);
+    CNd ( const char* robotname = NULL );
     /** Default destructor */
     ~CNd();
     /**
      * Adds a rangefinder to the sensor list
      * @param sensor to be added
      */
-    void addRangeFinder(ARangeFinder* sensor);
+    void addRangeFinder ( ARangeFinder* sensor );
     /**
      * Gets the recommended translational velocity
      * @return [m/s]
@@ -93,12 +93,12 @@ class CNd
      * Updates the algorithm
      * @param pose current pose of robot (local coordinate system)
      */
-    void update(CPose2d pose );
+    void update ( CPose2d pose );
     /**
      * Sets the goal for the algorithm in robot local coordinates
      * @param goal to get to in robot local coordinates
      */
-    void setGoal(CPose2d goal);
+    void setGoal ( CPose2d goal );
     /**
      * Gets the current goal
      * @return goal
@@ -130,12 +130,12 @@ class CNd
      * the goal heading that is considered as objective met
      * @param angle [rad]
      */
-    void setEpsilonAngle(float angle);
+    void setEpsilonAngle ( float angle );
     /**
-     * Set the distance to a waypoint that is considered objective met 
+     * Set the distance to a waypoint that is considered objective met
      * @param dist [m]
      */
-    void setEpsilonDistance(float dist);
+    void setEpsilonDistance ( float dist );
     /**
      * Resets Nd's state variables
      */
@@ -150,19 +150,19 @@ class CNd
      * @param b angle [rad]
      * @return [rad]
      */
-    float angleDiff(float a, float b);
+    float angleDiff ( float a, float b );
     /**
      * Sets the driving direction
      * @param dir 1 forward, 0 backwards
      */
-    void setDirection(int dir);
+    void setDirection ( int dir );
     /**
      * Threshold a given velocity to {[-vMin, -vMax], 0, [vMin, vMax]}
      * @param vMin minimal velocity
      * @param vMax maximal velocity
      * @return thresholded velocity
      */
-    float threshold(float v, float vMin, float vMax);
+    float threshold ( float v, float vMin, float vMax );
 
   private:
     /** Name of robot */

@@ -118,7 +118,7 @@ CNd::CNd ( const char* robotName )
   //NDparametros.enlarge = NDparametros.dsmin/2.0F;
   mNDparam.enlarge = mNDparam.dsmin * 0.2F;
 
-  mNDparam.discontinuity = mNDparam.left;  // Discontinuity (check whether it fits)
+  mNDparam.discontinuity = 1.5 * mNDparam.left;  // Discontinuity (check whether it fits)
 
   mNDparam.T = 0.1F;  // Sample rate of the SICK
 
@@ -203,7 +203,7 @@ void CNd::processSensors()
 
   for ( int s = 0; s < mNumSensors; s++ ) {
     maxRange = mSensorList[s]->getMaxRange();
-    for ( unsigned int i = 0; i < mSensorList[s]->mNumSamples; i++ ) {
+    for ( unsigned int i = 0; i < mSensorList[s]->getNumSamples(); i++ ) {
 
       if ( mSensorList[s]->mRangeData[i].range < maxRange ) {
         sinA = sin ( mSensorList[s]->mRelativeBeamPose[i].mYaw );
@@ -220,8 +220,9 @@ void CNd::processSensors()
         mObstacles.punto[idx].x = ( mRobotPose.mX + rx * cosR - ry * sinR );
         mObstacles.punto[idx].y = ( mRobotPose.mY + rx * sinR + ry * cosR );
       } else {
-        mObstacles.punto[idx].x = 0;
-        mObstacles.punto[idx].y = 0;
+        // ND requires no obstacle readings to be 0
+        mObstacles.punto[idx].x = 0.0f;
+        mObstacles.punto[idx].y = 0.0f;
       }
       idx ++;
     }

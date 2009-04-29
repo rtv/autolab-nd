@@ -307,10 +307,10 @@ static void SectorizarMapa ( TInfoEntorno *mapa, TInfoND *nd )
   TCoordenadasPolares pp; // M�dulos al cuadrado para evitar ra�ces innecesarias.
   int i, j;
 
+  // clear all sector bins from obstacles
   for ( i = 0; i < SECTORES; i++ )
     nd->d[i].r = -1.0F;
 
-  //printf ( "ROBOT %f %f %f \n", nd->SR1.posicion.x, nd->SR1.posicion.y, R2D ( nd->SR1.orientacion ) );
   for ( i = 0; i < mapa->longitud; i++ ) {
     p = mapa->punto[i];
     // transform obstacle point into local coordinate system
@@ -320,7 +320,7 @@ static void SectorizarMapa ( TInfoEntorno *mapa, TInfoND *nd )
 
     // find sector
     j = ObtenerSectorP ( pp );
-    //printf ( "obstacle (%f %f) polar %f %f -> %d (%d) \n", p.x, p.y, pp.r, R2D ( pp.a ), j, SECTORES );
+
     // fill polar histogram with closest obstacle distance
     if ( ( nd->d[j].r < 0.0F ) || ( pp.r < nd->d[j].r ) )
       nd->d[j] = pp;
@@ -521,14 +521,16 @@ static void SeleccionarRegion ( TInfoND *nd )
 #define IZQUIERDA VERDADERO
 #define DERECHA FALSO
 
-  int objetivo_a_la_vista = ( nd->d[nd->objetivo.s].r < 0.0F ) ||
-                            ( nd->objetivo.p1.r <= nd->d[nd->objetivo.s].r );
+  int objetivo_a_la_vista;
   TRegion *region, *region_izquierda, *region_derecha, *region_auxiliar;
   int indice, indice_izquierda, indice_derecha, indice_auxiliar;
   int distancia_izquierda, distancia_derecha;
 
-  // Inicializamos el vector de regiones.
 
+  objetivo_a_la_vista = ( nd->d[nd->objetivo.s].r < 0.0F ) ||
+                        ( nd->objetivo.p1.r <= nd->d[nd->objetivo.s].r );
+
+  // Inicializamos el vector de regiones.
   nd->regiones.longitud = 0;
 
   indice = nd->regiones.longitud++;
@@ -549,6 +551,7 @@ static void SeleccionarRegion ( TInfoND *nd )
     region->principio = 0;
     region->final = SECTORES - 1;
 
+    // do we have direct line of sight ?
     if ( objetivo_a_la_vista ) {
       region->direccion_tipo = DIRECCION_OBJETIVO;
       region->direccion_sector = nd->objetivo.s;
@@ -1277,7 +1280,6 @@ static int ObtenerSituacionCutting ( TInfoND *nd, float w )
 }
 //---------------------------------------------------------------------------
 // Cutting / AnguloSinRotacion
-
 static float AnguloSinRotacion ( TInfoND *nd, TVelocities *velocidades )
 {
   TCoordenadas F;
@@ -1407,7 +1409,6 @@ TVelocities *IterarND ( TCoordenadas objetivo,
 
   // calculate sector from goal polar coordinates
   nd.objetivo.s = ObtenerSectorP ( nd.objetivo.p1 );
-
   // Sectorizaci�n del mapa
   SectorizarMapa ( mapa, &nd );
 
@@ -1509,8 +1510,8 @@ TVelocities *IterarND ( TCoordenadas objetivo,
     }
   }
 
+  // limit speed commands
   AplicarCotas ( &velocidades.v,
-
                  0.0F,
                  robot.velocidad_lineal_maxima );
   AplicarCotas ( &velocidades.w,
