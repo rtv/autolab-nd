@@ -38,6 +38,7 @@
 
 #include "nd_alg.h"
 #include "pose2d.h"
+#include "velocity2d.h"
 #include "utilities.h"
 #include "error.h"
 #include "rangefinder.h"
@@ -79,6 +80,11 @@ class CNd
      * @param sensor to be added
      */
     void addRangeFinder ( ARangeFinder* sensor );
+    /**
+     * Gets the recommended velocity
+     * @return [m/s] [rad/s]
+     */
+    CVelocity2d getRecommendedVelocity();
     /**
      * Gets the recommended translational velocity
      * @return [m/s]

@@ -136,6 +136,11 @@ CNd::~CNd()
 {
 }
 //---------------------------------------------------------------------------
+CVelocity2d CNd::getRecommendedVelocity()
+{
+  return CVelocity2d( mVCmd, 0.0, mWCmd );
+}
+//---------------------------------------------------------------------------
 void CNd::reset()
 {
   mFgWaiting = false;
