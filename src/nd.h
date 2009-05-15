@@ -97,9 +97,10 @@ class CNd
     float getRecommendedRotationalVelocity() { return mWCmd; };
     /**
      * Updates the algorithm
+     * @param timestamp current time [s]
      * @param pose current pose of robot (local coordinate system)
      */
-    void update ( CPose2d pose );
+    void update (float timestamp, CPose2d pose );
     /**
      * Sets the goal for the algorithm in robot local coordinates
      * @param goal to get to in robot local coordinates
@@ -207,13 +208,8 @@ class CNd
     float mVDotMax;
     /** Maximal rotational acceleration [rad/s^2] */
     float mWDotMax;
-    /**
-     * Time constant for rotational vel. low pass filter for turn in
-     * place situations [s]
-     */
-    float mTauWTurnInPlace;
-    /** Time constant for rotational vel. low pass filter for normal turning[s] */
-    float mTauW;
+    /** Current time ND [s] */
+    float mCurrentTime;
     /** Distance at which obstacle avoidance begins [m] */
     float mAvoidDist;
     float mRotateMinError;

@@ -15,10 +15,10 @@
 #include "nd.h"
 
 /* ------------------------------------------------------------------------- */
-/* Declaración de constantes y macros.                                       */
+/* Declaraciï¿½n de constantes y macros.                                       */
 /* ------------------------------------------------------------------------- */
 
-// Declaración de la constante PI.
+// Declaraciï¿½n de la constante PI.
 
 #ifdef PI
 #undef PI
@@ -29,18 +29,48 @@
 #define M_PI PI
 #endif
 
-// Declaración de operaciones básicas.
+// Declaraciï¿½n de operaciones bï¿½sicas.
 
-#define CUADRADO(x) (float)((x)*(x))
-#define RAIZ(x) (float)sqrt(x)
+inline float CUADRADO(float x)
+{
+  return x*x;
+}
 
-#define ARCOTANGENTE(x,y) (float)atan2(y,x)
-#define ARCOCOSENO(x,r) (float)acos((x)/(r))
-#define ARCOSENO(y,r) (float)asin((y)/(r))
+//#define RAIZ(x) (float)sqrt(x)
+inline float RAIZ(float x)
+{
+  return (float)sqrt(x);
+}
 
-#define MINIMO(a,b) ( (a)<=(b) ? (a) : (b) )
-#define MAXIMO(a,b) ( (a)>=(b) ? (a) : (b) )
+//#define ARCOTANGENTE(x,y) (float)atan2(y,x)
+inline float ARCOTANGENTE(float x, float y)
+{
+  return (float)atan2(y,x);
+}
 
+//#define ARCOCOSENO(x,r) (float)acos((x)/(r))
+inline float ARCOCOSENO(float x, float r) 
+{
+  return (float)acos((x)/(r));
+}
+
+//#define ARCOSENO(y,r) (float)asin((y)/(r))
+inline float ARCOSENO(float y, float r)
+{
+ return (float)asin((y)/(r));
+}
+
+//#define MINIMO(a,b) ( (a)<=(b) ? (a) : (b) )
+inline float MINIMO(float a, float b)
+{
+ return ( (a)<=(b) ? (a) : (b) );
+}
+
+//#define MAXIMO(a,b) ( (a)>=(b) ? (a) : (b) )
+inline float MAXIMO(float a, float b)
+{
+ return float ( (a)>=(b) ? (a) : (b) );
+}
 /* ------------------------------------------------------------------------- */
 /* Cotas                                                                     */
 /* ------------------------------------------------------------------------- */
@@ -48,22 +78,25 @@
 extern void AplicarCotas( float *n, float i, float s );
 
 /* ------------------------------------------------------------------------- */
-/* Declaración de tipos y macros relacionadas.                               */
+/* Declaraciï¿½n de tipos y macros relacionadas.                               */
 /* ------------------------------------------------------------------------- */
 
 // Coordenadas cartesianas. Espacio real (y pantalla).
 
-#define DISTANCIA_CUADRADO2(p,q) (((p).x-(q).x)*((p).x-(q).x)+((p).y-(q).y)*((p).y-(q).y))
-
+//#define DISTANCIA_CUADRADO2(p,q) (((p).x-(q).x)*((p).x-(q).x)+((p).y-(q).y)*((p).y-(q).y))
+inline float DISTANCIA_CUADRADO2(TCoordenadas p, TCoordenadas q)
+{
+  return (((p).x-(q).x)*((p).x-(q).x)+((p).y-(q).y)*((p).y-(q).y));
+}
 // Coordenadas polares. Espacio real.
 
 typedef struct {
   float r; // Radio.
-  float a; // Ángulo.
+  float a; // ï¿½ngulo.
 } TCoordenadasPolares;
 
 /* ------------------------------------------------------------------------- */
-/* Construcción de coordenadas.                                              */
+/* Construcciï¿½n de coordenadas.                                              */
 /* ------------------------------------------------------------------------- */
 
 extern void ConstruirCoordenadasCP( TCoordenadas *p, TCoordenadasPolares q );
@@ -74,7 +107,7 @@ extern void ConstruirCoordenadasPC( TCoordenadasPolares *p, TCoordenadas q );
 extern void ConstruirCoordenadasPxy( TCoordenadasPolares *p, float x, float y );
 extern void ConstruirCoordenadasPra( TCoordenadasPolares *p, float r, float a );
 
-// Paso de cartesianas a polares, pero con el módulo al cuadrado.
+// Paso de cartesianas a polares, pero con el mï¿½dulo al cuadrado.
 extern void ConstruirCoordenadasPcC( TCoordenadasPolares *p, TCoordenadas q );
 
 /* ------------------------------------------------------------------------- */
@@ -127,26 +160,26 @@ extern void TransformacionInversa( TSR *SR, TCoordenadas *p );
     }
 
 /* ------------------------------------------------------------------------- */
-/* Ángulos e intervalos de ángulos.                                          */
+/* ï¿½ngulos e intervalos de ï¿½ngulos.                                          */
 /* ------------------------------------------------------------------------- */
 
 extern float AnguloNormalizado( float angulo );
 
 extern int AnguloPerteneceIntervaloOrientadoCerrado( float angulo, float limite1, float limite2 );
-// Esta función devuelve 1 si el ángulo está entre los límites; 0 en caso contrario.
-// Todos los parámetros deben pertenecer al intervalo (-PI,PI].
+// Esta funciï¿½n devuelve 1 si el ï¿½ngulo estï¿½ entre los lï¿½mites; 0 en caso contrario.
+// Todos los parï¿½metros deben pertenecer al intervalo (-PI,PI].
 
 extern float BisectrizAnguloOrientado( float limite1, float limite2 );
-// Devuelve la bisectriz del ángulo de "limite1" a "limite2" en sentido contrario a las agujas del reloj.
+// Devuelve la bisectriz del ï¿½ngulo de "limite1" a "limite2" en sentido contrario a las agujas del reloj.
 
 extern float BisectrizAnguloNoOrientado( float limite1, float limite2 );
-// Devuelve la bisectriz del menor ángulo formado por "limite1" y "limite2", ya sea en el sentido de las agujas del reloj o en el opuesto.
+// Devuelve la bisectriz del menor ï¿½ngulo formado por "limite1" y "limite2", ya sea en el sentido de las agujas del reloj o en el opuesto.
 
 extern float AmplitudAnguloOrientado( float limite1, float limite2 );
-// Devuelve la amplitud del ángulo de "limite1" a "limite2" en sentido contrario a las agujas del reloj.
+// Devuelve la amplitud del ï¿½ngulo de "limite1" a "limite2" en sentido contrario a las agujas del reloj.
 
 extern float AmplitudAnguloNoOrientado( float limite1, float limite2 );
-// Devuelve la amplitud del menor ángulo formado por "limite1" y "limite2", ya sea en el sentido de las agujas del reloj o en el opuesto.
+// Devuelve la amplitud del menor ï¿½ngulo formado por "limite1" y "limite2", ya sea en el sentido de las agujas del reloj o en el opuesto.
 
 /* ------------------------------------------------------------------------- */
 /* Cortes entre dos segmentos, uno de los cuales tiene como uno de sus       */
@@ -154,10 +187,10 @@ extern float AmplitudAnguloNoOrientado( float limite1, float limite2 );
 /* ------------------------------------------------------------------------- */
 
 void MinimaDistanciaCuadradoCorte( TCoordenadasPolares pp1, TCoordenadasPolares pp2, float angulo, float *distancia );
-// Mediante su aplicación reiterada obtenemos el más próximo de entre los puntos de corte de un
-// grupo de segmentos con una dirección determinada.
+// Mediante su aplicaciï¿½n reiterada obtenemos el mï¿½s prï¿½ximo de entre los puntos de corte de un
+// grupo de segmentos con una direcciï¿½n determinada.
 // "p1" y "p2" son los extremos de un segmento.
-// "angulo" es la dirección de corte (desde el origen).
+// "angulo" es la direcciï¿½n de corte (desde el origen).
 // "distancia" es la menor distancia obtenida hasta el momento.
 
 #endif //geometria_h

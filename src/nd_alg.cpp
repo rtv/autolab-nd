@@ -1096,7 +1096,7 @@ static void control_angulo ( TInfoND *nd )
 
   ObtenerObstaculos ( nd, nd->regiones.vector[nd->region].direccion_angulo );
 
-  if ( nd->obstaculo_izquierda == -1 && nd->obstaculo_derecha == -1 ) {
+  if ( (nd->obstaculo_izquierda == -1) && (nd->obstaculo_derecha == -1) ) {
     if ( region->direccion_tipo == DIRECCION_OBJETIVO ) {
       sprintf ( nd->situacion, "HSGR" );
       nd->angulosin = solHSGR ( nd );
@@ -1115,7 +1115,7 @@ static void control_angulo ( TInfoND *nd )
       }
   }
   else {
-    if ( nd->obstaculo_izquierda != -1 && nd->obstaculo_derecha != -1 ) {
+    if ( (nd->obstaculo_izquierda != -1) && (nd->obstaculo_derecha != -1) ) {
       sprintf ( nd->situacion, "LS2" );
       nd->angulo = solLS2 ( nd );
       nd->angulosin = nd->angulo;
@@ -1174,6 +1174,8 @@ static void GenerarMovimientoFicticio ( TInfoND *nd, float angulo, TVelocities *
   velocidades->w = robot.velocidad_angular_maxima * cvmax * ( float ) sin ( nd->angulo );
   // Calculada en SR2C.
 //  fprintf(depuracion,"%d: <a,ci,cd,cvmax,v,w>=<%f,%f,%f,%f,%f,%f>\n",++iteracion,nd->angulo,ci,cd,cvmax,velocidades->v,velocidades->w);
+
+  // limit velocities
   AplicarCotas ( & ( velocidades->v ), 0.0F, robot.velocidad_lineal_maxima );
   AplicarCotas ( & ( velocidades->w ), -robot.velocidad_angular_maxima,
                  robot.velocidad_angular_maxima );
@@ -1416,7 +1418,7 @@ TVelocities *IterarND ( TCoordenadas objetivo,
   // Solo en el caso de robot rectangular
   if ( robot.geometriaRect == 1 )
     if ( ParadaEmergencia ( &nd ) ) {
-      PRT_MSG0 ( 6, "ND -> Emergency Shutdown" );
+      PRT_MSG0 ( 6, "ND: Emergency Shutdown" );
       return 0;
     }
 
@@ -1424,7 +1426,7 @@ TVelocities *IterarND ( TCoordenadas objetivo,
   SeleccionarRegion ( &nd );
 
   if ( nd.region < 0 ) {
-    PRT_ERR0 ( "ND -> Cannot find region" );
+    PRT_ERR0 ( "ND: Cannot find region" );
     return 0;
   }
 
@@ -1475,7 +1477,8 @@ TVelocities *IterarND ( TCoordenadas objetivo,
 
 
   // En funcion del tipo de robot.
-  if ( robot.holonomo ) { // ya se han aplicado cotas al angulo
+  if ( robot.holonomo ) { // HOLONOMIC ROBOT
+    // ya se han aplicado cotas al angulo
     // printf("Movimiento Holonomo\n");
     // velocidades.v=
     //   nd.velocidad*fabs(DistanciaAngular(fabs(nd.angulo),M_PI/2))/(M_PI/2);
@@ -1495,7 +1498,7 @@ TVelocities *IterarND ( TCoordenadas objetivo,
     */
 
   }
-  else {
+  else { // NON-HOLONOMIC ROBOT
     velocidades.v_theta = 0.0F;
     // printf("Movimiento No Holonomo\n");
     // Calculo del movimiento Generador de movimientos
