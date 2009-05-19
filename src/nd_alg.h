@@ -98,7 +98,8 @@ typedef struct {
   float dsmax, dsmin, enlarge;
 
   // -- DISCONTINUITY --
-  // Minimum space where the robot fits. I suggest same value than "izquierda" value.
+  // Minimum space where the robot fits. I suggest same value than "izquierda"
+  // value.
   float discontinuity;
 
   // -- SAMPLING PERIOD --

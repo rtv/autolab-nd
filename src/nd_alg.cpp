@@ -1135,7 +1135,7 @@ static void control_angulo ( TInfoND *nd )
   // limit angulo
   AplicarCotas ( & ( nd->angulo ), -PI / 2.0F, PI / 2.0F );
   //AplicarCotas( &( nd->angulo ), -PI, PI  );
-  //nd->angulo = NORMALIZE_ANGLE ( nd->angulo );
+  //nd->angulo = NORMALIZE_TO_2PI ( nd->angulo );
 }
 
 //----------------------------------------------------------------------------

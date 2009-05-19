@@ -53,6 +53,7 @@
 #include "printerror.h"
 #include "utilities.h"
 #include <string.h>
+#include <math.h>
 
 /** Dimension of robot in front of wheels [m] */
 const float FRONT_DIMENSION = 0.4;
@@ -218,13 +219,16 @@ void CNd::processSensors()
 
         globalSensorX = mRobotPose.mX + rx * cosR - ry * sinR;
         globalSensorY = mRobotPose.mY + rx * sinR + ry * cosR;
-        globalSensorAngle = NORMALIZE_ANGLE ( mRobotPose.mYaw +
-                                              mSensorList[s]->mRelativeBeamPose[i].mYaw );
+        globalSensorAngle = NORMALIZE_TO_2PI ( mRobotPose.mYaw +
+                                               mSensorList[s]->
+                                               mRelativeBeamPose[i].mYaw );
 
         // convert to cartesian coords, in global coordinate system
-        mObstacles.punto[idx].x = globalSensorX + mSensorList[s]->mRangeData[i].range *
+        mObstacles.punto[idx].x = globalSensorX +
+                                  mSensorList[s]->mRangeData[i].range *
                                   cos ( globalSensorAngle );
-        mObstacles.punto[idx].y = globalSensorY + mSensorList[s]->mRangeData[i].range *
+        mObstacles.punto[idx].y = globalSensorY +
+                                  mSensorList[s]->mRangeData[i].range *
                                   sin ( globalSensorAngle );
 
       } else {
@@ -383,7 +387,7 @@ void CNd::update ( float timestamp, CPose2d robotPose )
       if ( mDir < 0 ) {
         // Trick the ND by telling it that the robot is pointing the
         // opposite direction
-        pose.SR1.orientacion = NORMALIZE_ANGLE ( pose.SR1.orientacion + M_PI );
+        pose.SR1.orientacion = NORMALIZE_TO_2PI ( pose.SR1.orientacion + M_PI );
         // Also reverse the robot's geometry (it may be asymmetric
         // front-to-back)
         setDirection ( -1 );
@@ -440,8 +444,8 @@ void CNd::update ( float timestamp, CPose2d robotPose )
 float CNd::angleDiff ( float a, float b )
 {
   float d1, d2;
-  a = NORMALIZE_ANGLE ( a );
-  b = NORMALIZE_ANGLE ( b );
+  a = NORMALIZE_TO_2PI ( a );
+  b = NORMALIZE_TO_2PI ( b );
   d1 = a - b;
   d2 = 2 * M_PI - fabs ( d1 );
 
@@ -449,10 +453,8 @@ float CNd::angleDiff ( float a, float b )
     d2 *= -1.0;
 
   if ( fabs ( d1 ) < fabs ( d2 ) ) {
-    //printf ( "angleDiff(%f %f) = %f (%f) \n", R2D ( a ), R2D ( b ), R2D ( d1 ), R2D ( d2 ) );
     return ( d1 );
   } else {
-    //printf ( "angleDiff(%f %f) = %f (%f) \n", R2D ( a ), R2D ( b ), R2D ( d2 ), R2D ( d1 ) );
     return ( d2 );
   }
 

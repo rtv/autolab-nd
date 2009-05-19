@@ -6,7 +6,8 @@ PKG_SEARCH_MODULE( RAPI REQUIRED autolab-rapi  )
 
 
 IF( RAPI_FOUND )
-  MESSAGE( STATUS ${INDENT} "Rapi version ${RAPI_VERSION} detected at ${RAPI_PREFIX}" )
+  MESSAGE( STATUS ${INDENT} "Rapi version ${RAPI_VERSION} detected at
+   ${RAPI_PREFIX}" )
   #MESSAGE( STATUS "    RAPI_CFLAGS  = ${RAPI_CFLAGS}" )
   #MESSAGE( STATUS "    RAPI_LDFLAGS = ${RAPI_LDFLAGS}" )
   #MESSAGE( STATUS "    RAPI_INCLUDE = ${RAPI_INCLUDE_DIRS}" )
@@ -18,6 +19,7 @@ ENDIF( RAPI_FOUND )
 SET( HEADERS
   nd.h
   nd_alg.h
+  nd_utilities.h
 )
 
 SET( SOURCES

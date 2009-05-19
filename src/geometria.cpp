@@ -27,7 +27,7 @@ void AplicarCotas( float *n, float i, float s )
 }
 
 /* ------------------------------------------------------------------------- */
-/* Construcci�n de coordenadas.                                              */
+/* Construcci�n de coordenadas.                                            */
 /* ------------------------------------------------------------------------- */
 
 void ConstruirCoordenadasCP( TCoordenadas *p, TCoordenadasPolares q )
@@ -128,7 +128,7 @@ void TransformacionInversa( TSR *SR, TCoordenadas *p )
 }
 
 /* ------------------------------------------------------------------------- */
-/* Normalizaci�n de �ngulos.                                                 */
+/* Normalizaci�n de �ngulos.                                             */
 /* ------------------------------------------------------------------------- */
 
 float AnguloNormalizado( float angulo )
@@ -142,18 +142,19 @@ float AnguloNormalizado( float angulo )
 int AnguloPerteneceIntervaloOrientadoCerrado( float angulo, float limite1, float limite2 )
 {
   // Intervalo orientado.
-  // Esta funci�n devuelve 1 si el �ngulo est� entre los l�mites; 0 en caso contrario.
-  // Todos los par�metros deben pertenecer al intervalo (-PI,PI].
-  // Si limite1==limite2, entonces el intervalo es de longitud 0.
+  // Esta funci�n devuelve 1 si el �ngulo est� entre los l�mites; 0 en
+  // caso contrario. Todos los par�metros deben pertenecer al intervalo
+  // (-PI,PI]. Si limite1==limite2, entonces el intervalo es de longitud 0.
 
-  return ( limite2 >= limite1 ) ? (( angulo >= limite1 ) && ( angulo <= limite2 ) ) :
+  return ( limite2 >= limite1 ) ? (( angulo >= limite1 ) &&
+         ( angulo <= limite2 ) ) :
          (( angulo >= limite1 ) || ( angulo <= limite2 ) );
 }
 
 float BisectrizAnguloOrientado( float limite1, float limite2 )
 {
-  // Devuelve la bisectriz del �ngulo de "limite1" a "limite2" en sentido contrario a
-  // las agujas del reloj.
+  // Devuelve la bisectriz del �ngulo de "limite1" a "limite2" en sentido
+  // contrario a las agujas del reloj.
 
   float resultado = ( limite1 + limite2 ) / 2.0F;
 
@@ -162,8 +163,8 @@ float BisectrizAnguloOrientado( float limite1, float limite2 )
 
 float BisectrizAnguloNoOrientado( float limite1, float limite2 )
 {
-  // Devuelve la bisectriz del menor �ngulo formado por "limite1" y "limite2", ya sea
-  // en el sentido de las agujas del reloj o en el opuesto.
+  // Devuelve la bisectriz del menor �ngulo formado por "limite1" y 
+  // "limite2", ya sea en el sentido de las agujas del reloj o en el opuesto.
 
   float resultado = ( limite1 + limite2 ) / 2.0F;
 
