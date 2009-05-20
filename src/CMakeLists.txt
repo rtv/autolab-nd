@@ -19,7 +19,6 @@ ENDIF( RAPI_FOUND )
 SET( HEADERS
   nd.h
   nd_alg.h
-  nd_utilities.h
 )
 
 SET( SOURCES

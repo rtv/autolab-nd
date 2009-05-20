@@ -30,7 +30,6 @@
 
 #ifndef nd_h
 #define nd_h
-#include "error.h"
 #include "utilities.h"
 
 // ----------------------------------------------------------------------------

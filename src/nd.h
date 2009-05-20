@@ -39,7 +39,6 @@
 #include "nd_alg.h"
 #include "pose2d.h"
 #include "velocity2d.h"
-#include "error.h"
 #include "rangefinder.h"
 #include "ndinterface.h"
 
