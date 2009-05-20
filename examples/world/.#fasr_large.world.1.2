@@ -1,0 +1,227 @@
+# FASR demo world
+# Authors: Richard Vaughan, Jens Wawerla
+# $Id: fasr_large.world,v 1.2 2009-04-05 01:16:51 jwawerla Exp $
+
+include "pioneer.inc"
+include "map.inc"
+include "sick.inc"
+
+interval_sim 100  # simulation timestep in milliseconds
+interval_real 0 # real-time interval between simulation updates in milliseconds
+paused 1
+
+# stop Stage after x seconds, 0 = run for ever
+quit_time 7200.0
+
+# resolution of items in the world [m]
+resolution 0.02
+
+# threads may speed things up here depending on available CPU cores & workload
+# threadpool 0
+ threadpool 0
+
+# configure the GUI window
+window
+(
+  size [ 1254.000 948.000 ]
+
+  center [ 23.885 -22.174 ]
+  rotate [ 0 0 ]
+  #scale 35.648
+  scale 1.100
+
+  pcam_loc [ 0 -4.000 2.000 ]
+  pcam_angle [ 70.000 0 ]
+  pcam_on 0
+
+  show_data 1
+  show_flags 1
+
+  interval 50
+)
+
+# load an environment bitmap
+floorplan
+(
+  name "background"
+  pose [0 0 0 0]
+  size [1000.000 750.000 0.600]
+  bitmap "bitmaps/SFU_medium.png"
+  #bitmap "bitmaps/cave.png"
+  #bitmap "bitmaps/cave_.png"
+  #size [32.000 32.000 0.600]
+)
+
+
+###############################################################################
+# Taskmanager, Depot
+model
+(
+  pose [ -2.536 11.410 0 0]
+  name "taskmanager"
+  ctrl "taskmanager"
+  db_count 4
+  db [ "scriptname<string>tasks_large.txt"  "mapmodel<string>background" "wavefrontcellsize<float>1.0" ]
+)
+
+model
+(
+  name "depot"
+  pose [-14.000 0 0 0]
+  size [0 0 0]
+  gui_nose 0
+  gui_grid 0
+  gui_movemask 1
+  gui_outline 0
+
+  # insensible to collision and range sensors
+  obstacle_return 0
+  laser_return 0
+  ranger_return 0
+
+  db_count 1
+  db [ "queuedir<float>-90.0"]
+)
+
+model
+(
+  name "charger"
+  pose [13.000 -6.000 0 0]
+  size [0 0 0]
+  gui_nose 0
+  gui_grid 0
+  gui_movemask 1
+  gui_outline 0
+
+  # insensible to collision and range sensors
+  obstacle_return 0
+  laser_return 0
+  ranger_return 0
+
+  db_count 2
+  db [ "chargerate<float>5000.0" "queuedir<float>-150.0"]
+)
+
+###############################################################################
+# Sources and sinks
+
+zone
+(
+  color "green"
+  db_count 2
+  db [ "scriptname<string>tasks.txt" "queuedir<float>25" ]
+
+  pose [ -364.897 -78.336 0 0 ]
+  name "sourceA"
+  ctrl "fasrsource"
+)
+
+zone
+(
+  color "DarkGreen"
+
+  db_count 1
+  db [ "queuedir<float>165" ]
+
+  pose [ 264.204 -363.338 0 0 ]
+  name "sinkA"
+  ctrl "sink"
+)
+
+zone
+(
+  color "blue"
+  db_count 2
+  db [ "scriptname<string>tasks.txt" "queuedir<float>-85" ]
+  pose [ -315.675 164.141 0 0 ]
+  name "sourceB"
+  ctrl "fasrsource"
+)
+
+zone
+(
+  color "DarkBlue"
+  db_count 1
+  db [ "queuedir<float>-95" ]
+  pose [ 266.245 237.247 0 0 ]
+  name "sinkB"
+  ctrl "sink"
+)
+
+
+
+###############################################################################
+# Robot definition
+
+define charging_bump model
+(
+  pose [0.240 0 -0.100 0 ]
+  size [0.120 0.050 0.100]
+  take_watts 1000.0
+  color "orange"
+  obstacle_return 0
+)
+
+define autorob pioneer2dx
+(
+ localization "gps"
+ localization_origin [ 0 0 0 0 ]
+ sicklaser( samples 128 range_max 5 laser_return 2 watts 30 fov 270 origin [-0.040 0 0 0] color "red" )
+ ctrl "fasrrobot"
+ joules 100000
+ joules_capacity 400000
+ fiducial_return 1
+ charging_bump( fiducial( range_max 5 range_max_id 5 fov 225 pose [ 0 0 -0.100 0 ] ) )
+
+ db_count 3
+ #db [ "policy<string>replan" "mapmodel<string>background" "wavefrontcellsize<float>1.0" ]
+ db [ "policy<string>waitprob" "mapmodel<string>background" "wavefrontcellsize<float>2.0" ]
+)
+
+#barrier( pose [ 15.5 -5.5 0 90] )
+
+autorob( pose [-19.913 34.144 0  -115.364] joules 300 name "R01")
+#autorob( pose [-20.856 30.972 0    24.954] joules 300 name "R02")
+#autorob( pose [-28.085 39.923 0 -145.889] joules 300 name "R03")
+#autorob( pose [-26.935 40.538 0 34.667] joules 300000 name "R04")
+#autorob( pose [-25.174 38.255 0 -139.630] joules 300000 name "R06")
+#autorob( pose [-21.050 33.996 0 -139.630] joules 300000 name "R07")
+#autorob( pose [-22.982 40.321 0 34.814] joules 300000 name "R08")
+#autorob( pose [-22.008 32.820 0   23.256] joules 300000 name "R10")
+#autorob( pose [-17.184 28.121 0 -118.196] joules 300000 name "R11")
+#autorob( pose [-26.851 43.288 0   24.264] joules 300000 name "R12")
+#autorob( pose [-21.623 34.629 0 -112.449] joules 300000 name "R13")
+#autorob( pose [-22.889 37.803 0   23.677] joules 300000 name "R14")
+#autorob( pose [-25.856 38.765 0   35.095] joules 300000 name "R15")
+#autorob( pose [-23.913 38.398 0    24.142] joules 300000 name "R16")
+#autorob( pose [-26.481 42.104 0   -92.998] joules 300000 name "R17")
+
+###############################################################################
+# Charging station stuff
+
+define charge_station model
+(
+  size [ 0.100 0.300 0.100 ]
+  color "purple"
+
+  # side blocks to restrict view angle
+  model( color "purple" size [0.100 0.050 0.250] pose [ 0 0.100 0 0 ] )
+  model( color "purple" size [0.100 0.050 0.250] pose [ 0 -0.100 0 0 ] )
+
+  # the charging block
+  model(
+    pose [ 0.010 0 0 0 ]
+    color "yellow"
+    size [ 0.050 0.200 0.100 ]
+    joules -1  # provides infinite energy
+    give_watts 5000
+    fiducial_return 2 # look for this in the fiducial sensor
+   )
+
+)
+
+charge_station(  pose [ -3.520 12.332 0 0 ] )
+charge_station(  pose [ -3.520 11.332 0 0 ] )
+charge_station(  pose [ -3.552 10.364 0 0 ] )
+charge_station(  pose [ -3.520 9.332 0 0 ] )
+
