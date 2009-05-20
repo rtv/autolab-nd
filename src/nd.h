@@ -41,6 +41,7 @@
 #include "velocity2d.h"
 #include "error.h"
 #include "rangefinder.h"
+#include "ndinterface.h"
 
 const int MAX_ND_SENSORS = 3;
 using namespace Rapi;
@@ -67,7 +68,7 @@ using namespace Rapi;
  * @author Jens Wawerla <jwawerla@sfu.ca>
  * @verion 0.1 - 01/2008
  */
-class CNd
+class CNd : public INd
 {
   public:
     /** Default constructor */
@@ -97,9 +98,10 @@ class CNd
     /**
      * Updates the algorithm
      * @param timestamp current time [s]
-     * @param pose current pose of robot (local coordinate system)
+     * @param pose current pose of robot (global coordinate system)
+     * @param velocity current velocity of robot
      */
-    void update (float timestamp, CPose2d pose );
+    void update (float timestamp, CPose2d pose, CVelocity2d velocity );
     /**
      * Sets the goal for the algorithm in robot local coordinates
      * @param goal to get to in robot local coordinates
@@ -125,7 +127,7 @@ class CNd
      * Checks if Nd suggest to turn in place
      * @return true if turn in place recommended, false other wise
      */
-    bool isTurningInPlace() { return mTurningInPlace; };
+    bool isTurningInPlace() { return mFgTurningInPlace; };
     /**
      * Have we reached the current goal ?
      * @return true if goal was reached, false otherwise
@@ -146,6 +148,8 @@ class CNd
      * Resets Nd's state variables
      */
     void reset();
+
+    int getNumSectors();
 
   protected:
     /** Processes information from all registered sensors */
@@ -247,7 +251,9 @@ class CNd
      * validity of pose estimates
      */
     bool mFgWaitOnStall;
-    bool mTurningInPlace;
+    /** Flag if turning in place or not */
+    bool mFgTurningInPlace;
+    /** Flag if waiting or not */
     bool mFgWaiting;
     /** Do we have an active goal ? */
     bool mFgActiveGoal;
@@ -255,6 +261,10 @@ class CNd
     bool mFgAtGoal;
     /** List of obstacles */
     TInfoEntorno mObstacles;
+    /** Index of latest sensor reading entry */
+    unsigned int mReadingIndex;
+    /** Flags if sensor reading buffer is completely ininitialized */
+    bool mFgReadingBufferInitialized;
     int mDir;
 };
 
