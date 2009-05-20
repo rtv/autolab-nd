@@ -1,7 +1,6 @@
 
 
-ADD_LIBRARY( wander_nd MODULE wander.cpp )
-# ADD_DEPENDENCIES( wander_nd nd )
+ADD_LIBRARY( wander_nd MODULE wander_nd.cpp )
 
 INCLUDE(FindPkgConfig)
 PKG_SEARCH_MODULE( RAPISTAGE REQUIRED autolab-rapi-stage  )
@@ -15,7 +14,7 @@ LINK_DIRECTORIES(
 )
 
 TARGET_LINK_LIBRARIES( wander_nd
-    nd
+    autolab-nd
     ${STAGE_LIBRARIES}
     ${RAPISTAGE_LIBRARIES}						
     ${OPENGL_LIBRARIES}
