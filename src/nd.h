@@ -40,7 +40,6 @@
 #include "pose2d.h"
 #include "velocity2d.h"
 #include "rangefinder.h"
-#include "ndinterface.h"
 
 const int MAX_ND_SENSORS = 3;
 using namespace Rapi;
@@ -67,7 +66,7 @@ using namespace Rapi;
  * @author Jens Wawerla <jwawerla@sfu.ca>
  * @verion 0.1 - 01/2008
  */
-class CNd : public INd
+class CNd
 {
   public:
     /** Default constructor */
