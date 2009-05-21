@@ -21,14 +21,17 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
 {
   Stg::Geom geom = mod->GetGeom();
 
+  // push the current robot-centered coordinate frame on the stack
   glPushMatrix();
 		
+  // go into global coordinates
   Stg::Gl::pose_inverse_shift( mod->GetGlobalPose() );
 
+  // goal point
   if( nd.hasActiveGoal() )
 	 {
 		CPose2d goal = nd.getGoal();
-		glPointSize( 10 );
+		glPointSize( 15 );
 		mod->PushColor( 1,0,0,0.8 ); // red
 		glBegin( GL_POINTS );
 		glVertex2f( goal.mX, goal.mY );
@@ -39,6 +42,7 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
 		mod->PopColor();
 	 }
 		
+  // obstacle cloud
   for ( int i = 0; i < nd.mObstacles.longitud; i++ ) 
 	 {
 		glPointSize( 5 );
@@ -52,6 +56,7 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
 
   glPopMatrix(); // back to robot coords
 		
+  // current desired heading angle, in local frame
   mod->PushColor( 0,0,1,0.8 ); // blue
   float dx =  1.0 * cos( nd.mInfo.angulo );
   float dy =  1.0 * sin( nd.mInfo.angulo );
@@ -61,12 +66,14 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
   glEnd();
   mod->PopColor();
 
+  // safety distance
   mod->PushColor( 0,1,0,1 ); // green
   DrawCircle( 0,0,0, nd.mSafetyDist, 20 );
   mod->PopColor();
 		
+  // sector distances
   glPointSize( 5 );
-  mod->PushColor( 1,0,0,0.8 ); // red
+  mod->PushColor( 1,0,0,0.4 ); // red
   for ( unsigned int i = 0; i < SECTORES; i++ ) 
 	 {
 		if(  nd.mInfo.d[i].r < 0 )
@@ -77,10 +84,20 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
 		float dx = nd.mInfo.d[i].r *  cos( nd.mInfo.d[i].a );
 		float dy = nd.mInfo.d[i].r *  sin( nd.mInfo.d[i].a );
 
-		glVertex2f( 0, 0 );
+		glVertex2f( 0,0 );
 		glVertex2f( dx, dy );
 
 		glEnd();
 	 }				
   mod->PopColor();
+
+  // direction indicator
+  mod->PushColor( 0,0,1,0.8 ); // blue
+  glLineWidth( 5.0 );
+  glBegin( GL_LINES );
+  glVertex3f( 0,0,1.0 );
+  glVertex3f( 0.3 * nd.mCurrentDir, 0, 1.0 );  
+  glEnd();
+  mod->PopColor();
+  glLineWidth( 1.0 );
 }
