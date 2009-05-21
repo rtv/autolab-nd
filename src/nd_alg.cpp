@@ -1452,10 +1452,10 @@ TVelocities *IterarND ( TCoordenadas objetivo,
 
   control_velocidad ( nd ); // Obtenci�n de la velocidad de movimiento.
 
-//printf("speed %f %f \n",nd->velocidades.v, nd->velocidades.w);
   //  if (nd->velocidad<0.05F)
   //    nd->velocidad=0.05F;
   nd->velocidad = robot.velocidad_lineal_maxima;
+
 
   // Hasta aqui es el ND standart
 

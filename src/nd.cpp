@@ -56,20 +56,15 @@
 #include <string.h>
 #include <math.h>
 
-/** Dimension of robot in front of wheels [m] */
-const float FRONT_DIMENSION = 0.4;
-/** Dimension of robot in back of wheels [m] */
-const float BACK_DIMENSION = 0.3;
-/** Dimension to the side of the center of rotation [m] */
-const float SIDE_DIMENSION = 0.2;
 
-//---------------------------------------------------------------------------
-CNd::CNd ( const char* robotName )
+//-----------------------------------------------------------------------------
+CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
 {
-  if ( robotName == NULL )
-    snprintf ( mRobotName, 20, "noname" );
-  else
-    strncpy ( mRobotName, robotName, 20 );
+  mRobotName = robotName;
+  mFrontDim = frontDim;
+  mBackDim = backDim;
+  mSideDim = sideDim;
+
 
   mNumSensors = 0;
   mReadingIndex = 0;
@@ -82,13 +77,12 @@ CNd::CNd ( const char* robotName )
   mVMin = 0.02;
   mWMax = D2R ( 45.0 );
   mWMin = D2R ( 0.0 );
-  mVCmd = 0.0f;
-  mWCmd = 0.0f;
+  mVCmd = 0.0;
+  mWCmd = 0.0;
   mCurrentTime = 0.0f;
   mFgWaiting = false;
-  mFgWaitOnStall = false;
   mFgTurningInPlace = false;
-  mFgStall = false;
+  mFgStalled = false;
   mFgAtGoal = true;
   mRotateStuckTime = 5.0;  // [s]
   mTranslateStuckTime = 2.0;
@@ -97,18 +91,23 @@ CNd::CNd ( const char* robotName )
   mObstacles.longitud = 0;
   mVDotMax = 0.75;
   mWDotMax = 0.75;
+  mCurrentTime = 0.0;
+  mRotateMinError = 0.0;
+  mRotateStartTime = 0.0;
+
+
   // Fill in the ND's parameter structure
 
   // Rectangular geometry
   // mNDparam.geometryRect = 1;
   mNDparam.geometryRect = 1;
   // Distance from the wheel to the front
-  mNDparam.front = FRONT_DIMENSION + mSafetyDist;
+  mNDparam.front = frontDim + mSafetyDist;
   // Distance from the wheel to the back
-  mNDparam.back = BACK_DIMENSION +  mSafetyDist;
+  mNDparam.back = backDim +  mSafetyDist;
   // Distance from the wheel to the left side (note robot is symetric, therefore
-  // no need for right sight
-  mNDparam.left = SIDE_DIMENSION + mSafetyDist;
+  // no need for right side
+  mNDparam.left = sideDim + mSafetyDist;
 
   mNDparam.R = 0.3F;   // radius of robot, used only if geometryRect = 0
 
@@ -125,46 +124,69 @@ CNd::CNd ( const char* robotName )
   //NDparametros.enlarge = NDparametros.dsmin/2.0F;
   mNDparam.enlarge = mNDparam.dsmin * 0.2F;
 
-  mNDparam.discontinuity = 1.5 * mNDparam.left;  // Discontinuity (check whether it fits)
+  mNDparam.discontinuity = 1.5 * mNDparam.left;  // Discontinuity
 
   mNDparam.T = 0.1F;  // Sample rate of the SICK
 
   // Pass the structure to ND for initialization
   InicializarND ( &mNDparam );
   // set current driving direction to forward
-  mCurrentDir = 1;
-  mDir = 1;
+  mCurrentDir = FORWARD;
 
+  reset();
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 CNd::~CNd()
 {
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 CVelocity2d CNd::getRecommendedVelocity()
 {
   return CVelocity2d ( mVCmd, 0.0, mWCmd );
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CNd::setSafetyDistance ( float dist )
+{
+  mSafetyDist = dist;
+  // Distance from the wheel to the front
+  mNDparam.front = mFrontDim + mSafetyDist;
+  // Distance from the wheel to the back
+  mNDparam.back = mBackDim +  mSafetyDist;
+  // Distance from the wheel to the left side (note robot is symetric, therefore
+  // no need for right side
+  mNDparam.left = mSideDim + mSafetyDist;
+
+  // Pass the structure to ND for initialization
+  InicializarND ( &mNDparam );
+}
+//-----------------------------------------------------------------------------
+void CNd::setAvoidDistance ( float dist )
+{
+  mAvoidDist = dist;
+
+  mNDparam.dsmax = mAvoidDist; // Security distance
+  // Pass the structure to ND for initialization
+  InicializarND ( &mNDparam );
+}
+//-----------------------------------------------------------------------------
 void CNd::reset()
 {
   mFgWaiting = false;
-  mFgWaitOnStall = false;
   mFgTurningInPlace = false;
-  mFgStall = false;
+  mFgStalled = false;
   mFgAtGoal = false;
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void CNd::setEpsilonAngle ( float angle )
 {
   mAngleEps = angle;
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void CNd::setEpsilonDistance ( float dist )
 {
   mDistEps = dist;
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void CNd::addRangeFinder ( ARangeFinder* sensor )
 {
   if ( mNumSensors < MAX_ND_SENSORS ) {
@@ -172,38 +194,38 @@ void CNd::addRangeFinder ( ARangeFinder* sensor )
     mNumSensors++;
   }
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool CNd::atGoal()
 {
   return mFgAtGoal;
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool CNd::isStalled()
 {
-  return mFgStall;
+  return mFgStalled;
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool CNd::hasActiveGoal()
 {
   return mFgActiveGoal;
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 int CNd::getNumSectors()
 {
   return SECTORES;
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void CNd::setGoal ( CPose2d goal )
 {
   mGoal = goal;
   mFgActiveGoal = true;
   mFgAtGoal = false;
-  mFgStall = false;
+  mFgStalled = false;
   mFgTurningInPlace = false;
   mTranslateStartTime = mCurrentTime;
   mLastRobotPose = mRobotPose;
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void CNd::processSensors()
 {
   float rx, ry;
@@ -239,14 +261,12 @@ void CNd::processSensors()
         mObstacles.punto[mReadingIndex].y = globalSensorY +
                                             mSensorList[s]->mRangeData[i].range *
                                             sin ( globalSensorAngle );
-
-		  mReadingIndex ++;
-		}
+        mReadingIndex ++;
+      }
 
       if ( mReadingIndex >= MAX_POINTS_SCENARIO ) {
         mReadingIndex = 0;
         mFgReadingBufferInitialized = true;
-		  
       }
     }
     if ( mFgReadingBufferInitialized )
@@ -255,7 +275,7 @@ void CNd::processSensors()
       mObstacles.longitud = mReadingIndex;
   }
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void CNd::update ( float timestamp, CPose2d robotPose,
                    CVelocity2d robotVelocity )
 {
@@ -291,7 +311,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
 
   if ( mObstacles.longitud == 0 ) {
     PRT_ERR1 ( "%s: No sensor data available, did you register a range finder ?",
-               mRobotName );
+               mRobotName.c_str() );
     return;
   }
 
@@ -309,13 +329,14 @@ void CNd::update ( float timestamp, CPose2d robotPose,
     mFgActiveGoal = false;
     mVCmd = 0.0f;
     mWCmd = 0.0f;
-    PRT_MSG1 ( 6, "%s: At goal", mRobotName );
+    PRT_MSG1 ( 6, "%s: At goal", mRobotName.c_str() );
     mFgAtGoal = true;
     return;
-  } else {
+  }
+  else {
     // are we close enough in distance?
     if ( ( gDx < mDistEps ) || ( mFgTurningInPlace ) ) {
-      PRT_MSG1 ( 9, "%s: Turning in place", mRobotName );
+      PRT_MSG1 ( 9, "%s: Turning in place", mRobotName.c_str() );
       // To make the robot turn (safely) to the goal orientation, we'll
       // give it a fake goal that is in the right direction, and just
       // ignore the translational velocity.
@@ -324,7 +345,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
 
       // In case we went backward to get here, reverse direction so that we
       // can attain the goal heading
-      setDirection ( 1 );
+      setDirection ( FORWARD );
 
       cmdVel = IterarND ( goal,            // goal
                           mDistEps,        // goal tolerance
@@ -336,16 +357,16 @@ void CNd::update ( float timestamp, CPose2d robotPose,
         // Emergency stop
         mVCmd = 0;
         mWCmd = 0;
-        mFgStall = true;
+        mFgStalled = true;
         mFgActiveGoal = false;
-        PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName );
+        PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName.c_str() );
         return;
-      } else {
-        mFgStall = false;
+      }
+      else {
+        mFgStalled = false;
       }
       // we are turning in place, so ignore translational speed command
       mVCmd = 0.0f;
-      //mWCmd = mWCmd + mTauWTurnInPlace / mNDparam.T  * ( cmdVel->w - mWCmd );
       mWCmd = cmdVel->w;
 
       if ( !mFgTurningInPlace ) {
@@ -353,19 +374,22 @@ void CNd::update ( float timestamp, CPose2d robotPose,
         mRotateStartTime = mCurrentTime;
         mRotateMinError = fabs ( gDa );
         mFgTurningInPlace = true;
-      } else {
+      }
+      else {
         // Are we making progress?
         if ( fabs ( gDa ) < mRotateMinError ) {
           // yes; reset the time
           mRotateStartTime = mCurrentTime;
           mRotateMinError = fabs ( gDa );
-        } else {
+        }
+        else {
           // no; have we run out of time?
           if ( ( mCurrentTime - mRotateStartTime ) > mRotateStuckTime ) {
-            PRT_MSG1 ( 6, "%s: Ran out of time trying to attain goal heading", mRobotName );
+            PRT_MSG1 ( 6, "%s: Ran out of time trying to attain goal heading",
+                       mRobotName.c_str() );
             mVCmd = 0.0f;
             mWCmd = 0.0f;
-            mFgStall = true;
+            mFgStalled = true;
             mFgActiveGoal = false;
             return;
           }
@@ -385,16 +409,18 @@ void CNd::update ( float timestamp, CPose2d robotPose,
            ( fabs ( oDa ) > mTranslateStuckAngle ) ) {
         mLastRobotPose = mRobotPose;
         mTranslateStartTime = mCurrentTime;
-      } else {
+      }
+      else {
         // Has it been long enough?
         float t;
         t = mCurrentTime;
 
         if ( ( t - mTranslateStartTime ) > mTranslateStuckTime ) {
-          PRT_MSG1 ( 6, "%s: ran out of time trying to get to goal", mRobotName );
+          PRT_MSG1 ( 6, "%s: ran out of time trying to get to goal",
+                     mRobotName.c_str() );
           mVCmd = 0;
           mWCmd = 0;
-          mFgStall = true;
+          mFgStalled = true;
           mFgActiveGoal = false;
           return;
         }
@@ -405,15 +431,16 @@ void CNd::update ( float timestamp, CPose2d robotPose,
       goal.y = mGoal.mY;
 
       // Were we asked to go backward?
-      if ( mDir < 0 ) {
+      if ( mCurrentDir == BACKWARD ) {
         // Trick the ND by telling it that the robot is pointing the
         // opposite direction
         motionData.SR1.orientacion = NORMALIZE_TO_2PI ( motionData.SR1.orientacion + M_PI );
         // Also reverse the robot's geometry (it may be asymmetric
         // front-to-back)
-        setDirection ( -1 );
-      } else
-        setDirection ( 1 );
+        setDirection ( BACKWARD );
+      }
+      else
+        setDirection ( FORWARD );
 
       cmdVel = IterarND ( goal,            // goal
                           mDistEps,        // goal tolerance
@@ -423,37 +450,37 @@ void CNd::update ( float timestamp, CPose2d robotPose,
 
       if ( !cmdVel ) {
         // Emergency stop
-        mVCmd = 0;
-        mWCmd = 0;
-        mFgStall = true;
+        mVCmd = 0.0f;
+        mWCmd = 0.0f;
+        mFgStalled = true;
         mFgActiveGoal = false;
-        PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName );
+        PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName.c_str() );
         return;
-      } else {
+      }
+      else {
 
-        mFgStall = false;
+        mFgStalled = false;
         mVCmd = cmdVel->v;
         mWCmd = cmdVel->w;
       }
-      //mWCmd = mWCmd + mTauW / mNDparam.T  * ( cmdVel->w - mWCmd );
     } // far away loop
 
     if ( !mVCmd && !mWCmd ) {
-      // ND is done, yet we didn't detect that we reached the goal.  How
-      // odd.
-      mVCmd = 0;
-      mWCmd = 0;
-      mFgStall = true;
+      // ND is done, yet we didn't detect that we reached the goal.  How odd.
+      mVCmd = 0.0f;
+      mWCmd = 0.0f;
+      mFgStalled = true;
       mFgActiveGoal = false;
-      PRT_MSG1 ( 9, "%s: ND failed to reach goal ?!", mRobotName );
+      PRT_MSG1 ( 9, "%s: ND failed to reach goal ?!", mRobotName.c_str() );
       return;
-    } else {
+    }
+    else {
       mVCmd = threshold ( mVCmd, mVMin, mVMax );
 
       if ( !mVCmd )
         mWCmd = threshold ( mWCmd, mWMin, mWMax );
       // Were we asked to go backward?
-      if ( mDir < 0 ) {
+      if ( mCurrentDir < 0 ) {
         // reverse the commanded x velocity
         mVCmd = -mVCmd;
       }
@@ -461,7 +488,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
   }
 }
 
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 float CNd::angleDiff ( float a, float b )
 {
   float d1, d2;
@@ -475,37 +502,37 @@ float CNd::angleDiff ( float a, float b )
 
   if ( fabs ( d1 ) < fabs ( d2 ) ) {
     return ( d1 );
-  } else {
+  }
+  else {
     return ( d2 );
   }
 
 }
-
-//---------------------------------------------------------------------------
-void CNd::setDirection ( int dir )
+//-----------------------------------------------------------------------------
+void CNd::setDirection ( tDirection dir )
 {
   if ( dir == mCurrentDir )
     return;
 
-  if ( dir > 0 ) {
+  if ( dir == FORWARD ) {
     // Distance to the front
-    mNDparam.front = FRONT_DIMENSION + mSafetyDist;
+    mNDparam.front = mFrontDim + mSafetyDist;
 
     // Distance to the back
-    mNDparam.back = BACK_DIMENSION + mSafetyDist;
+    mNDparam.back = mBackDim + mSafetyDist;
     InicializarND ( &mNDparam );
-  } else {
+  }
+  else {
     // Distance to the front
-    mNDparam.front = BACK_DIMENSION + mSafetyDist;
+    mNDparam.front = mBackDim + mSafetyDist;
     // Distance to the back
-    mNDparam.back = FRONT_DIMENSION + mSafetyDist;
+    mNDparam.back = mFrontDim + mSafetyDist;
     InicializarND ( &mNDparam );
   }
 
   mCurrentDir = dir;
 }
-
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 float CNd::threshold ( float v, float vMin, float vMax )
 {
   if ( isAboutZero ( v ) )
@@ -515,7 +542,8 @@ float CNd::threshold ( float v, float vMin, float vMax )
       v = MIN ( v, vMax );
       v = MAX ( v, vMin );
       return ( v );
-    } else {
+    }
+    else {
       v = MAX ( v, -vMax );
       v = MIN ( v, -vMin );
       return ( v );

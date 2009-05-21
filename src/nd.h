@@ -36,6 +36,7 @@
 #ifndef CND_H
 #define CND_H
 
+#include <string.h>
 #include "nd_alg.h"
 #include "geometria.h"
 #include "nd2_alg.h"
@@ -70,19 +71,36 @@ using namespace Rapi;
  */
 class CNd
 {
-  // allow the visualization to see non-public members
-  friend class NdVis;
+    // allow the visualization to see non-public members
+    friend class NdVis;
 
   public:
-    /** Default constructor */
-    CNd ( const char* robotname = NULL );
+    /**
+     * Default constructor
+     * @param frontDim dimension of robot in front of wheels [m]
+     * @param backDim dimension of robot behind the wheels [m]
+     * @param sideDim dimension to the side of the center of rotation [m]
+     * @param name of robot for status messages
+     */
+    CNd ( float frontDim, float backDim, float sideDim, std::string robotname = "noName" );
     /** Default destructor */
     ~CNd();
+    typedef enum {FORWARD, BACKWARD} tDirection;
     /**
      * Adds a rangefinder to the sensor list
      * @param sensor to be added
      */
     void addRangeFinder ( ARangeFinder* sensor );
+    /**
+     * Set the safety distance
+     * @param dist [m]
+     */
+    void setSafetyDistance ( float dist );
+    /**
+     * Set the avoid distance
+     * @param dist [m]
+     */
+    void setAvoidDistance ( float dist );
     /**
      * Gets the recommended velocity
      * @return [m/s] [rad/s]
@@ -104,7 +122,7 @@ class CNd
      * @param pose current pose of robot (global coordinate system)
      * @param velocity current velocity of robot
      */
-    void update (float timestamp, CPose2d pose, CVelocity2d velocity );
+    void update ( float timestamp, CPose2d pose, CVelocity2d velocity );
     /**
      * Sets the goal for the algorithm in robot local coordinates
      * @param goal to get to in robot local coordinates
@@ -168,7 +186,7 @@ class CNd
      * Sets the driving direction
      * @param dir 1 forward, 0 backwards
      */
-    void setDirection ( int dir );
+    void setDirection ( tDirection dir );
     /**
      * Threshold a given velocity to {[-vMin, -vMax], 0, [vMin, vMax]}
      * @param vMin minimal velocity
@@ -179,7 +197,7 @@ class CNd
 
   private:
     /** Name of robot */
-    char mRobotName[20];
+    std::string mRobotName;
     /** Pose of robot */
     CPose2d mRobotPose;
     /** Pose of robot from last time step */
@@ -219,12 +237,14 @@ class CNd
     /** Distance at which obstacle avoidance begins [m] */
     float mAvoidDist;
     float mRotateMinError;
+    /** Time stemp when we started to rotates [s] */
     float mRotateStartTime;
     /**
      * How long the robot is allowed to rotate in place without making any
      * progress toward the goal orientation before giving up [s]
      */
     float mRotateStuckTime;
+    /** Time stemp when we started to translate [s] */
     float mTranslateStartTime;
     float mTranslateMinError;
     /**
@@ -243,17 +263,9 @@ class CNd
      */
     float mTranslateStuckAngle;
     /** Current driving direction 1 forward, 0 backwards */
-    int mCurrentDir;
-    /** Are we stalmLed */
-    bool mFgStall;
-    /**
-     * Should local navigation be paused if the stall flag is set on the
-     * input:::position2d device? This option is useful if the robot's pose
-     * is being read from a SLAM system that sets the stall flag when it
-     * is performing intensive computation and can no longer guarantee the
-     * validity of pose estimates
-     */
-    bool mFgWaitOnStall;
+    tDirection mCurrentDir;
+    /** Flags if we are stalled */
+    bool mFgStalled;
     /** Flag if turning in place or not */
     bool mFgTurningInPlace;
     /** Flag if waiting or not */
@@ -268,10 +280,15 @@ class CNd
     unsigned int mReadingIndex;
     /** Flags if sensor reading buffer is completely ininitialized */
     bool mFgReadingBufferInitialized;
-    int mDir;
+    /** Front dimension of robot [m] */
+    float mFrontDim;
+    /** Back dimension of robot [m] */
+    float mBackDim;
+    /** Side dimension of robot [m] */
+    float mSideDim;
+    /** intermedidate ND data, stored here for vis purposes */
+    TInfoND mInfo;
 
-	 /** intermedidate ND data, stored here for vis purposes */
-	 TInfoND mInfo; 
 };
 
 #endif
