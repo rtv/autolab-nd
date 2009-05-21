@@ -3,6 +3,8 @@
 SET( HEADERS
   nd.h
   nd_alg.h
+  nd2_alg.h
+  geometria.h
 )
 
 SET( SOURCES 
@@ -10,6 +12,17 @@ SET( SOURCES
 	  nd.cpp
 	  nd_alg.cpp 
 )
+
+SET( LIBRARIES
+  ${RAPI_LIBRARIES}
+)
+
+# if Stage is present, add code for visualizing ND in Stage
+if( STAGE_FOUND )
+  SET( HEADERS ${HEADERS} ndvis.h )
+  SET( SOURCES ${SOURCES} ndvis.cpp )	 
+  SET( LIBRARIES ${LIBRARIES} ${STAGE_LIBRARIES} ${OPENGL_LIBRARIES} )
+endif ( STAGE_FOUND )
 
 
 # build a shared library
@@ -20,10 +33,7 @@ SET_TARGET_PROPERTIES( autolab-nd PROPERTIES
   VERSION ${VERSION}
 )
 
-TARGET_LINK_LIBRARIES( autolab-nd
-  ${RAPI_LIBRARIES}
-  ${OPENGL}
-)
+TARGET_LINK_LIBRARIES( autolab-nd ${LIBRARIES} )
 
 INSTALL(TARGETS autolab-nd
   LIBRARY DESTINATION lib )

@@ -1381,58 +1381,58 @@ static void GenerarMovimiento(TInfoND *nd,TVelocities *velocidades) {
 TVelocities *IterarND ( TCoordenadas objetivo,
                         float goal_tol,
                         TInfoMovimiento *movimiento,
-                        TInfoEntorno *mapa, void *informacion )
+                        TInfoEntorno *mapa, void* info )
 {
 
   // Devuelve NULL si se requiere una parada de emergencia o si no encuentra
   // una regi�n por la que hacer avanzar el robot.
   // Devuelve un puntero a (0.0F,0.0F) si se ha alcanzado el objetivo.
-  TInfoND nd;
+  TInfoND* nd = (TInfoND*)info;
 
   // Valgrind says that some of the values in this nd structure are
   // uninitialized when it's accessed in ObtenerSituacionCutting(), so I'm
   // zeroing it here.  - BPG
-  memset ( &nd, 0, sizeof ( TInfoND ) );
+  memset ( nd, 0, sizeof ( TInfoND ) );
 
   // depuracion=fopen("depuracion.txt","at");
   // Tratamiento de los par�metros "objetivo" y "movimiento".
 
-  nd.objetivo.c0 = objetivo; // goal location
-  nd.SR1 = movimiento->SR1; // robot position
-  nd.velocidades = movimiento->velocidades;
+  nd->objetivo.c0 = objetivo; // goal location
+  nd->SR1 = movimiento->SR1; // robot position
+  nd->velocidades = movimiento->velocidades;
 
-  nd.objetivo.c1 = nd.objetivo.c0; // goal location
+  nd->objetivo.c1 = nd->objetivo.c0; // goal location
 
   // Transform goal to robot local coordinate system, translate and rotate
-  TRANSFORMACION01 ( & ( nd.SR1 ), & ( nd.objetivo.c1 ) )
+  TRANSFORMACION01 ( & ( nd->SR1 ), & ( nd->objetivo.c1 ) )
 
   // convert goal to polar coordinates
-  ConstruirCoordenadasPC ( & ( nd.objetivo.p1 ), nd.objetivo.c1 );
+  ConstruirCoordenadasPC ( & ( nd->objetivo.p1 ), nd->objetivo.c1 );
 
   // calculate sector from goal polar coordinates
-  nd.objetivo.s = ObtenerSectorP ( nd.objetivo.p1 );
+  nd->objetivo.s = ObtenerSectorP ( nd->objetivo.p1 );
   // Sectorizaci�n del mapa
-  SectorizarMapa ( mapa, &nd );
+  SectorizarMapa ( mapa, nd );
 
   // Evaluaci�n de la necesidad de una parada de emergencia
   // Solo en el caso de robot rectangular
   if ( robot.geometriaRect == 1 )
-    if ( ParadaEmergencia ( &nd ) ) {
+    if ( ParadaEmergencia ( nd ) ) {
       PRT_MSG0 ( 6, "ND: Emergency Shutdown" );
       return 0;
     }
 
   // Selecci�n de la regi�n por la cual avanzar� el robot
-  SeleccionarRegion ( &nd );
+  SeleccionarRegion ( nd );
 
-  if ( nd.region < 0 ) {
+  if ( nd->region < 0 ) {
     PRT_ERR0 ( "ND: Cannot find region" );
     return 0;
   }
 
   // Construcci�n de la distancia desde el per�metro del robot al obst�culo m�s
   // cercano en cada sector
-  ConstruirDR ( &nd );
+  ConstruirDR ( nd );
 
   // Deteccion de fin de trayecto. -- Despu�s de considerar la necesidad de una
   // parada de emergencia
@@ -1441,10 +1441,10 @@ TVelocities *IterarND ( TCoordenadas objetivo,
     // Replaced this check with the user-specified goal tolerance - BPG
     /*
     // Cuadrado
-    if ((nd.objetivo.c1.x>=robot.Dimensiones[0]) &&
-       (nd.objetivo.c1.x<=robot.Dimensiones[2]) &&
-       (nd.objetivo.c1.y>=robot.Dimensiones[3]) &&
-       (nd.objetivo.c1.y<=robot.Dimensiones[1])) {
+    if ((nd->objetivo.c1.x>=robot.Dimensiones[0]) &&
+       (nd->objetivo.c1.x<=robot.Dimensiones[2]) &&
+       (nd->objetivo.c1.y>=robot.Dimensiones[3]) &&
+       (nd->objetivo.c1.y<=robot.Dimensiones[1])) {
         */
     if ( hypot ( objetivo.x - movimiento->SR1.posicion.x,
                  objetivo.y - movimiento->SR1.posicion.y ) < goal_tol ) {
@@ -1455,7 +1455,7 @@ TVelocities *IterarND ( TCoordenadas objetivo,
     }
   }
   else
-    if ( ( CUADRADO ( nd.objetivo.c1.x ) + CUADRADO ( nd.objetivo.c1.y ) )
+    if ( ( CUADRADO ( nd->objetivo.c1.x ) + CUADRADO ( nd->objetivo.c1.y ) )
          < CUADRADO ( robot.R ) ) {
       // Redondo
       velocidades.v = 0.0F;
@@ -1464,14 +1464,14 @@ TVelocities *IterarND ( TCoordenadas objetivo,
     }
 
   // C�lculo del movimiento del robot
-  control_angulo ( &nd );   // Obtenci�n de la direcci�n de movimiento.
+  control_angulo ( nd );   // Obtenci�n de la direcci�n de movimiento.
 
-  control_velocidad ( &nd ); // Obtenci�n de la velocidad de movimiento.
+  control_velocidad ( nd ); // Obtenci�n de la velocidad de movimiento.
 
-//printf("speed %f %f \n",nd.velocidades.v, nd.velocidades.w);
-  //  if (nd.velocidad<0.05F)
-  //    nd.velocidad=0.05F;
-  nd.velocidad = robot.velocidad_lineal_maxima;
+//printf("speed %f %f \n",nd->velocidades.v, nd->velocidades.w);
+  //  if (nd->velocidad<0.05F)
+  //    nd->velocidad=0.05F;
+  nd->velocidad = robot.velocidad_lineal_maxima;
 
   // Hasta aqui es el ND standart
 
@@ -1481,17 +1481,17 @@ TVelocities *IterarND ( TCoordenadas objetivo,
     // ya se han aplicado cotas al angulo
     // printf("Movimiento Holonomo\n");
     // velocidades.v=
-    //   nd.velocidad*fabs(DistanciaAngular(fabs(nd.angulo),M_PI/2))/(M_PI/2);
-    velocidades.v = nd.velocidad * ( float ) fabs ( AmplitudAnguloNoOrientado ( ( float )
-                    fabs ( nd.angulo ), M_PI / 2 ) ) / ( M_PI / 2 );
-    /*     velocidades.v= nd.velocidad; */
+    //   nd->velocidad*fabs(DistanciaAngular(fabs(nd->angulo),M_PI/2))/(M_PI/2);
+    velocidades.v = nd->velocidad * ( float ) fabs ( AmplitudAnguloNoOrientado ( ( float )
+                    fabs ( nd->angulo ), M_PI / 2 ) ) / ( M_PI / 2 );
+    /*     velocidades.v= nd->velocidad; */
     /*     velocidades.w=0.4; */
     //    velocidades.w=
-    //  (M_PI/2-DistanciaAngular(fabs(nd.angulo),M_PI/2))/(M_PI/2)*
+    //  (M_PI/2-DistanciaAngular(fabs(nd->angulo),M_PI/2))/(M_PI/2)*
     //  robot.velocidad_angular_maxima;
-    velocidades.w = nd.angulo / ( M_PI / 2 ) * robot.velocidad_angular_maxima;
-    velocidades.v_theta = nd.angulo;
-    /*    if (nd.angulo<0) {
+    velocidades.w = nd->angulo / ( M_PI / 2 ) * robot.velocidad_angular_maxima;
+    velocidades.v_theta = nd->angulo;
+    /*    if (nd->angulo<0) {
           velocidades.w=-velocidades.w;
        printf("vdsd�f\n");
      }
@@ -1502,14 +1502,14 @@ TVelocities *IterarND ( TCoordenadas objetivo,
     velocidades.v_theta = 0.0F;
     // printf("Movimiento No Holonomo\n");
     // Calculo del movimiento Generador de movimientos
-    GenerarMovimientoFicticio ( &nd, nd.angulo, &velocidades );
+    GenerarMovimientoFicticio ( nd, nd->angulo, &velocidades );
     // Aplicar correcciones al movimiento calculado.
 
     if ( robot.geometriaRect == 1 ) {
       // Cuadrado
-      GiroBrusco ( &nd, &velocidades );
+      GiroBrusco ( nd, &velocidades );
       /*       printf("Entra en cutting %d\n",robot.geometriaRect); */
-      Cutting ( &nd, &velocidades ); // Evitar colisi�n en zona posterior.
+      Cutting ( nd, &velocidades ); // Evitar colisi�n en zona posterior.
     }
   }
 
@@ -1522,12 +1522,6 @@ TVelocities *IterarND ( TCoordenadas objetivo,
                  robot.velocidad_angular_maxima );
 
   /*     printf("w = %f\n",velocidades.w);   */
-
-  // Copia (si se requiere) de la informaci�n interna de ND para que quede
-  // accesible desde el exterior.
-
-  if ( informacion )
-    * ( TInfoND* ) informacion = nd;
 
   return &velocidades;
 }

@@ -22,7 +22,8 @@
 #include <RapiLooseStage>
 using namespace Rapi;
 
-#include "../src/nd.h"
+#include "nd.h"
+#include "ndvis.h" // a Stage visualizer for ND
 
 /**
  * Example robot controller, based on the wander example from Stage
@@ -38,6 +39,7 @@ class CWanderCtrl : public ARobotCtrl
  CWanderCtrl(ARobot* robot)
 	: ARobotCtrl ( robot ),
 	  nd( "example robot"),
+	  vis( nd ),
 	  mDrivetrain(NULL)
   {
 	 CLooseStageRobot* looseRobot = (CLooseStageRobot*)mRobot;	 	 
@@ -51,8 +53,11 @@ class CWanderCtrl : public ARobotCtrl
 		exit ( -1 );
 	 }
 
+	 // insert the visualizer
+	 mDrivetrain->getStageModel()->AddVisualizer( &vis, true );
+
 	 nd.addRangeFinder( laser );
-	 nd.setGoal( CPose2d(6,6) );
+	 nd.setGoal( CPose2d(-7,0) );
   }
  
   /** Default destructor */
@@ -62,6 +67,9 @@ class CWanderCtrl : public ARobotCtrl
   
   /** autolab-nd*/
   CNd nd;
+
+  /** Stage Visualiser for ND */
+  NdVis vis;
 
   /** Stage position model */
   CLooseStageDrivetrain2dof* mDrivetrain;

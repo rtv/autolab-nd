@@ -37,6 +37,8 @@
 #define CND_H
 
 #include "nd_alg.h"
+#include "geometria.h"
+#include "nd2_alg.h"
 #include "pose2d.h"
 #include "velocity2d.h"
 #include "rangefinder.h"
@@ -68,6 +70,9 @@ using namespace Rapi;
  */
 class CNd
 {
+  // allow the visualization to see non-public members
+  friend class NdVis;
+
   public:
     /** Default constructor */
     CNd ( const char* robotname = NULL );
@@ -255,6 +260,9 @@ class CNd
     /** List of obstacles */
     TInfoEntorno mObstacles;
     int mDir;
+
+	 /** intermedidate ND data, stored here for vis purposes */
+	 TInfoND mInfo; 
 };
 
 #endif

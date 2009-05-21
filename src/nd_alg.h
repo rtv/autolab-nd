@@ -189,11 +189,13 @@ void InicializarND( TParametersND *parametros );
 //      * NULL an emergency stop is required
 //      * pointer to (0,0) goal reached.
 
+//struct TInfoND;
+
 extern TVelocities *IterarND( TCoordenadas objetivo,
                                 float goal_tol,
                                 TInfoMovimiento *movimiento,
                                 TInfoEntorno *mapa,
-                                void *informacion );
+                                void* info );
 // if you do not want to see the internal information in nh2.h informacion = NULL
 
 // **********************************

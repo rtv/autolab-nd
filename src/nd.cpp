@@ -50,6 +50,7 @@
  *
  ***************************************************************************/
 #include "nd.h"
+#include "../src/nd2_alg.h" // for the ND code's internals
 #include "printerror.h"
 #include "utilities.h"
 #include <string.h>
@@ -231,12 +232,8 @@ void CNd::processSensors()
                                   mSensorList[s]->mRangeData[i].range *
                                   sin ( globalSensorAngle );
 
-      } else {
-        // ND requires no obstacle readings (out of sensor range) to be 0
-        mObstacles.punto[idx].x = 0.0f;
-        mObstacles.punto[idx].y = 0.0f;
-      }
       idx ++;
+      }
     }
     mObstacles.longitud = idx;
   }
@@ -310,7 +307,7 @@ void CNd::update ( float timestamp, CPose2d robotPose )
                           mDistEps,
                           &pose,
                           &mObstacles,
-                          NULL );
+                          &mInfo );
       if ( !cmdVel ) {
         // Emergency stop
         mVCmd = 0;
@@ -398,7 +395,7 @@ void CNd::update ( float timestamp, CPose2d robotPose )
                           mDistEps,
                           &pose,
                           &mObstacles,
-                          NULL );
+                          &mInfo );
 
       if ( !cmdVel ) {
         // Emergency stop

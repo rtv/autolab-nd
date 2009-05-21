@@ -12,7 +12,7 @@
 #define geometria_h
 
 #include <math.h>
-#include "nd.h"
+#include "nd_alg.h"
 
 /* ------------------------------------------------------------------------- */
 /* Declaraci�n de constantes y macros.                                       */

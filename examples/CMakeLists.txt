@@ -6,6 +6,7 @@ INCLUDE(FindPkgConfig)
 PKG_SEARCH_MODULE( RAPISTAGE REQUIRED autolab-rapi-stage  )
 
 INCLUDE_DIRECTORIES( 
+  ../src
   ${RAPISTAGE_INCLUDE_DIRS}
 )
 
