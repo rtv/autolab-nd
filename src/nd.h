@@ -38,6 +38,8 @@
 
 #include <string.h>
 #include "nd_alg.h"
+#include "geometria.h"
+#include "nd2_alg.h"
 #include "pose2d.h"
 #include "velocity2d.h"
 #include "rangefinder.h"
@@ -69,6 +71,9 @@ using namespace Rapi;
  */
 class CNd
 {
+    // allow the visualization to see non-public members
+    friend class NdVis;
+
   public:
     /**
      * Default constructor
@@ -90,12 +95,12 @@ class CNd
      * Set the safety distance
      * @param dist [m]
      */
-    void setSafetyDistance(float dist);
+    void setSafetyDistance ( float dist );
     /**
      * Set the avoid distance
      * @param dist [m]
      */
-    void setAvoidDistance(float dist);
+    void setAvoidDistance ( float dist );
     /**
      * Gets the recommended velocity
      * @return [m/s] [rad/s]
@@ -117,7 +122,7 @@ class CNd
      * @param pose current pose of robot (global coordinate system)
      * @param velocity current velocity of robot
      */
-    void update (float timestamp, CPose2d pose, CVelocity2d velocity );
+    void update ( float timestamp, CPose2d pose, CVelocity2d velocity );
     /**
      * Sets the goal for the algorithm in robot local coordinates
      * @param goal to get to in robot local coordinates
@@ -281,6 +286,8 @@ class CNd
     float mBackDim;
     /** Side dimension of robot [m] */
     float mSideDim;
+    /** intermedidate ND data, stored here for vis purposes */
+    TInfoND mInfo;
 
 };
 

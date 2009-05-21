@@ -145,10 +145,10 @@ CVelocity2d CNd::getRecommendedVelocity()
   return CVelocity2d ( mVCmd, 0.0, mWCmd );
 }
 //-----------------------------------------------------------------------------
-void CNd::setSafetyDistance(float dist)
+void CNd::setSafetyDistance ( float dist )
 {
   mSafetyDist = dist;
-   // Distance from the wheel to the front
+  // Distance from the wheel to the front
   mNDparam.front = mFrontDim + mSafetyDist;
   // Distance from the wheel to the back
   mNDparam.back = mBackDim +  mSafetyDist;
@@ -160,7 +160,7 @@ void CNd::setSafetyDistance(float dist)
   InicializarND ( &mNDparam );
 }
 //-----------------------------------------------------------------------------
-void CNd::setAvoidDistance(float dist)
+void CNd::setAvoidDistance ( float dist )
 {
   mAvoidDist = dist;
 
@@ -261,9 +261,9 @@ void CNd::processSensors()
         mObstacles.punto[mReadingIndex].y = globalSensorY +
                                             mSensorList[s]->mRangeData[i].range *
                                             sin ( globalSensorAngle );
-
         mReadingIndex ++;
       }
+
       if ( mReadingIndex >= MAX_POINTS_SCENARIO ) {
         mReadingIndex = 0;
         mFgReadingBufferInitialized = true;
@@ -351,7 +351,8 @@ void CNd::update ( float timestamp, CPose2d robotPose,
                           mDistEps,        // goal tolerance
                           &motionData,     // current velocity of the robot
                           &mObstacles,     // list of the obstacle points in global cs
-                          NULL );          // disable debug output
+                          &mInfo );        // ND puts internal data in here
+
       if ( !cmdVel ) {
         // Emergency stop
         mVCmd = 0;
@@ -445,7 +446,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
                           mDistEps,        // goal tolerance
                           &motionData,     // current velocity of the robot
                           &mObstacles,     // list of the obstacle points in global cs
-                          NULL );          // disable debug output
+                          &mInfo );        //ND leaves internal data in here
 
       if ( !cmdVel ) {
         // Emergency stop

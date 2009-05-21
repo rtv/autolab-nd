@@ -1,51 +1,44 @@
 
-SET( TARGET ${PROJECT_NAME} )
-
-INCLUDE(FindPkgConfig)
-PKG_SEARCH_MODULE( RAPI REQUIRED autolab-rapi  )
-
-
-IF( RAPI_FOUND )
-  MESSAGE( STATUS ${INDENT} "Rapi version ${RAPI_VERSION} detected at
-   ${RAPI_PREFIX}" )
-  #MESSAGE( STATUS "    RAPI_CFLAGS  = ${RAPI_CFLAGS}" )
-  #MESSAGE( STATUS "    RAPI_LDFLAGS = ${RAPI_LDFLAGS}" )
-  #MESSAGE( STATUS "    RAPI_INCLUDE = ${RAPI_INCLUDE_DIRS}" )
-  #MESSAGE( STATUS "    RAPI_LIBS    = ${RAPI_LIBRARIES}" )
-ELSE( RAPI_FOUND )
-  MESSAGE( ${INDENT} "Rapi not detected" )
-ENDIF( RAPI_FOUND )
 
 SET( HEADERS
   nd.h
   nd_alg.h
+  nd2_alg.h
+  geometria.h
 )
 
-SET( SOURCES
-  geometria.cpp
-  nd.cpp
-  nd_alg.cpp
+SET( SOURCES 
+	  geometria.cpp
+	  nd.cpp
+	  nd_alg.cpp 
 )
 
-INCLUDE_DIRECTORIES(
-  ${RAPI_INCLUDE_DIRS}
-)
-
-LINK_DIRECTORIES( ${RAPI_LIBRARY_DIRS} )
-
-LINK_LIBRARIES( ${TARGET}
+SET( MYLIBS
+  autolab-nd
   ${RAPI_LIBRARIES}
 )
 
+# if Stage is present, add code for visualizing ND in Stage
+if( STAGE_FOUND )
+  MESSAGE( ${INDENT} "Building Stage visualization" )
+  SET( HEADERS ${HEADERS} ndvis.h )
+  SET( SOURCES ${SOURCES} ndvis.cpp )	 
+  SET( MYLIBS ${MYLIBS} ${STAGE_LIBRARIES} ${OPENGL_LIBRARY} )
+  INCLUDE_DIRECTORIES( ${STAGE_INCLUDE_DIRS} )
+  LINK_DIRECTORIES( ${STAGE_LIBRARY_DIRS} )
+endif ( STAGE_FOUND )
+
 # build a shared library
-ADD_LIBRARY( ${TARGET} SHARED ${SOURCES} )
+ADD_LIBRARY( autolab-nd SHARED ${SOURCES} )
 
 # give the shared library a version number
-SET_TARGET_PROPERTIES( ${TARGET} PROPERTIES
+SET_TARGET_PROPERTIES( autolab-nd PROPERTIES
   VERSION ${VERSION}
 )
 
-INSTALL(TARGETS ${TARGET}
+TARGET_LINK_LIBRARIES(  ${MYLIBS} )
+
+INSTALL(TARGETS autolab-nd
   LIBRARY DESTINATION lib )
 
 INSTALL(FILES ${HEADERS}

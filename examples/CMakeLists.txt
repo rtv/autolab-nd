@@ -1,0 +1,33 @@
+
+
+INCLUDE_DIRECTORIES( 
+  ../src
+  ${RAPISTAGE_INCLUDE_DIRS}
+)
+LINK_DIRECTORIES( ${STAGE_LIBRARY_DIRS} )
+
+# must come AFTER the LINK_DIRECTORIES() command. sigh...
+ADD_LIBRARY( wander_nd MODULE wander_nd.cpp )
+
+INCLUDE(FindPkgConfig)
+PKG_SEARCH_MODULE( RAPISTAGE REQUIRED autolab-rapi-stage  )
+
+
+# message( "*&^&^%" rapi stage lib dirs: ${RAPISTAGE_LIBRARY_DIRS} )
+
+
+
+TARGET_LINK_LIBRARIES( wander_nd
+  autolab-nd 		  
+  ${RAPISTAGE_LIBRARIES}						
+  ${OPENGL_LIBRARY}
+)
+
+INSTALL(TARGETS wander_nd
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+)
+
+# delete the "lib" prefix from the plugin libraries
+SET_TARGET_PROPERTIES( wander_nd PROPERTIES PREFIX "" )
+
