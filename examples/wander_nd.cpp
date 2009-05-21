@@ -38,7 +38,7 @@ class CWanderCtrl : public ARobotCtrl
 	*/
  CWanderCtrl(ARobot* robot)
 	: ARobotCtrl ( robot ),
-	  nd( "example robot"),
+	  nd( 0.2, 0.3, 0.2 ), // robot dimensions in front, behind and to the side of the wheels
 	  vis( nd ),
 	  mDrivetrain(NULL)
   {
