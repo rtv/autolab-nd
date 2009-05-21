@@ -20,8 +20,8 @@
 // N�mero de sectores: m�ltiplo de 4.
 #define SECTORES 180
 
-#define VERDADERO 1
-#define FALSO 0
+#define TRUE 1
+#define FALSE 0
 #define NO_SIGNIFICATIVO -1
 
 // ----------------------------------------------------------------------------
@@ -32,7 +32,7 @@
 
 // Dimensiones del robot.
 //   Consideramos el robot definido por un rect�ngulo. Numeramos sus
-//   dimensiones, medidas a partir de su centro en las direcciones principales,
+//   dimensiones, medidas a partir de su centro en las directiones principales,
 //   siguiendo la misma convenci�n que para los sectores:
 //     Dimension[0]: distancia desde el centro a la trasera del robot.
 //     Dimension[1]: distancia desde el centro a la izquierda del robot.
@@ -83,9 +83,9 @@ typedef struct {
 
 // Informaci�n acerca de la regi�n escogida.
 
-#define DIRECCION_OBJETIVO                0
-#define DIRECCION_DISCONTINUIDAD_INICIAL  1
-#define DIRECCION_DISCONTINUIDAD_FINAL    2
+#define DIRECTION_OBJETIVO                0
+#define DIRECTION_DISCONTINUIDAD_INICIAL  1
+#define DIRECTION_DISCONTINUIDAD_FINAL    2
 
 typedef struct {
   int principio;
@@ -96,9 +96,9 @@ typedef struct {
 
   int descartada;
 
-  int direccion_tipo;
-  int direccion_sector;
-  float direccion_angulo;
+  int direction_tipo;
+  int direction_sector;
+  float direction_angle;
 } TRegion;
 
 typedef struct {
@@ -125,12 +125,12 @@ typedef struct {
   int region;                      // Como almacenamos m�s de una regi�n debemos
                                    // indicar cu�l es la escogida.
 
-  int obstaculo_izquierda, obstaculo_derecha;
+  int obstaculo_left, obstaculo_right;
 
-  float angulosin;                 // S�lo como informaci�n de cara al exterior:
+  float anglesin;                 // S�lo como informaci�n de cara al exterior:
                                    // �ngulo antes de tener en cuenta los obst�culos
                                    // m�s pr�ximos.
-  float angulocon;                 // S�lo como informaci�n de cara al exterior:
+  float anglecon;                 // S�lo como informaci�n de cara al exterior:
                                    // �ngulo despu�s de tener en cuenta los
                                    // obst�culos m�s pr�ximos.
   char situacion[20];              // S�lo como informaci�n de cara al exterior:
@@ -140,7 +140,7 @@ typedef struct {
 
                                    // angle from from navigation algorithm, used by
                                    // movement generator ?!
-  float angulo;                    // Salida del algoritmo de navegaci�n y entrada
+  float angle;                    // Salida del algoritmo de navegaci�n y entrada
                                    // al generador de movimientos: direcci�n de
                                    // movimiento deseada.
   float velocidad;                 // Salida del algoritmo de navegaci�n y entrada
@@ -159,9 +159,9 @@ extern TInfoRobot robot;
 // FUNCIONES.
 // ----------------------------------------------------------------------------
 
-extern float sector2angulo( int sector );
+extern float sector2angle( int sector );
 
-extern int angulo2sector( float angulo );
+extern int angle2sector( float angle );
 
 
 #endif

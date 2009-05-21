@@ -58,8 +58,8 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
 		
   // current desired heading angle, in local frame
   mod->PushColor( 0,0,1,0.8 ); // blue
-  float dx =  1.0 * cos( nd.mInfo.angulo );
-  float dy =  1.0 * sin( nd.mInfo.angulo );
+  float dx =  1.0 * cos( nd.mInfo.angle );
+  float dy =  1.0 * sin( nd.mInfo.angle );
   glBegin( GL_LINES );		
   glVertex2f( 0, 0 );
   glVertex2f( dx, dy );		
@@ -100,4 +100,28 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
   glEnd();
   mod->PopColor();
   glLineWidth( 1.0 );
+
+  // regions
+  mod->PushColor( 1,0,1,0.8 ); // magenta
+
+  printf( "length: %d\n", nd.mInfo.regiones.longitud );
+
+
+
+  for( int i=0; i <nd.mInfo.regiones.longitud; i++ )
+	 {
+		TRegion* reg = &nd.mInfo.regiones.vector[i];
+
+		printf( "principio %d final %d principio_ascendente %d final_ascendente %d descartada %d direction_tipo %d direcction_sector %d direction_angle %.2f\n", 
+				  reg->principio,
+				  reg->final, reg->principio_ascendente, reg->final_ascendente, reg->descartada, reg->direction_tipo, reg->direction_sector, reg->direction_angle ); 
+
+		float dx = 1.0 *  cos( reg->direction_angle );
+		float dy = 1.0 *  sin( reg->direction_angle );
+
+		glBegin( GL_LINES );
+		glVertex3f( 0,0,0.01 );
+		glVertex3f( dx,dy,0.01 );
+		glEnd();
+	 }  
 }

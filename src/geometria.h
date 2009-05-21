@@ -163,22 +163,22 @@ extern void TransformacionInversa( TSR *SR, TCoordenadas *p );
 /* �ngulos e intervalos de �ngulos.                                          */
 /* ------------------------------------------------------------------------- */
 
-extern float AnguloNormalizado( float angulo );
+extern float AngleNormalizado( float angle );
 
-extern int AnguloPerteneceIntervaloOrientadoCerrado( float angulo, float limite1, float limite2 );
+extern int AnglePerteneceIntervaloOrientadoCerrado( float angle, float limite1, float limite2 );
 // Esta funci�n devuelve 1 si el �ngulo est� entre los l�mites; 0 en caso contrario.
 // Todos los par�metros deben pertenecer al intervalo (-PI,PI].
 
-extern float BisectrizAnguloOrientado( float limite1, float limite2 );
+extern float BisectrizAngleOrientado( float limite1, float limite2 );
 // Devuelve la bisectriz del �ngulo de "limite1" a "limite2" en sentido contrario a las agujas del reloj.
 
-extern float BisectrizAnguloNoOrientado( float limite1, float limite2 );
+extern float BisectrizAngleNoOrientado( float limite1, float limite2 );
 // Devuelve la bisectriz del menor �ngulo formado por "limite1" y "limite2", ya sea en el sentido de las agujas del reloj o en el opuesto.
 
-extern float AmplitudAnguloOrientado( float limite1, float limite2 );
+extern float AmplitudAngleOrientado( float limite1, float limite2 );
 // Devuelve la amplitud del �ngulo de "limite1" a "limite2" en sentido contrario a las agujas del reloj.
 
-extern float AmplitudAnguloNoOrientado( float limite1, float limite2 );
+extern float AmplitudAngleNoOrientado( float limite1, float limite2 );
 // Devuelve la amplitud del menor �ngulo formado por "limite1" y "limite2", ya sea en el sentido de las agujas del reloj o en el opuesto.
 
 /* ------------------------------------------------------------------------- */
@@ -186,11 +186,11 @@ extern float AmplitudAnguloNoOrientado( float limite1, float limite2 );
 /* extremos el origen.                                                       */
 /* ------------------------------------------------------------------------- */
 
-void MinimaDistanciaCuadradoCorte( TCoordenadasPolares pp1, TCoordenadasPolares pp2, float angulo, float *distancia );
+void MinimaDistanciaCuadradoCorte( TCoordenadasPolares pp1, TCoordenadasPolares pp2, float angle, float *distancia );
 // Mediante su aplicaci�n reiterada obtenemos el m�s pr�ximo de entre los puntos de corte de un
 // grupo de segmentos con una direcci�n determinada.
 // "p1" y "p2" son los extremos de un segmento.
-// "angulo" es la direcci�n de corte (desde el origen).
+// "angle" es la direcci�n de corte (desde el origen).
 // "distancia" es la menor distancia obtenida hasta el momento.
 
 #endif //geometria_h
