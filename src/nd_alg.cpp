@@ -1158,7 +1158,7 @@ static void GenerarMovimientoFicticio ( TInfoND *nd, float angulo, TVelocities *
   // Calculada en SR2C.
 //  fprintf(depuracion,"%d: <a,ci,cd,cvmax,v,w>=<%f,%f,%f,%f,%f,%f>\n",++iteracion,nd->angulo,ci,cd,cvmax,velocidades->v,velocidades->w);
 
-  printf ( "ND: %s angulo %f cvmax %f region %d \n",nd->situacion, R2D ( nd->angulo ), cvmax, nd->region );
+  //printf ( "ND: %s angulo %f cvmax %f region %d \n",nd->situacion, R2D ( nd->angulo ), cvmax, nd->region );
   // limit velocities
   AplicarCotas ( & ( velocidades->v ), 0.0F, robot.velocidad_lineal_maxima );
   AplicarCotas ( & ( velocidades->w ), -robot.velocidad_angular_maxima,
@@ -1452,7 +1452,7 @@ TVelocities *IterarND ( TCoordenadas objetivo,
 
   control_velocidad ( &nd ); // Obtenci�n de la velocidad de movimiento.
 
-//printf("speed %f %f \n",nd.velocidades.v, nd.velocidades.w);
+  //printf("speed %f %f \n",nd.velocidades.v, nd.velocidades.w);
   //  if (nd.velocidad<0.05F)
   //    nd.velocidad=0.05F;
   nd.velocidad = robot.velocidad_lineal_maxima;
