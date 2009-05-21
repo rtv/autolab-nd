@@ -81,7 +81,8 @@ class CWanderCtrl : public ARobotCtrl
   void updateData(float dt)
   {
 	 nd.update( mDrivetrain->getTimeStamp(),
-					mDrivetrain->getOdometry()->getPose()  );
+					mDrivetrain->getOdometry()->getPose(),
+					mDrivetrain->getVelocity() );
 	 
 	 mDrivetrain->setVelocityCmd ( nd.getRecommendedVelocity() );
 	 

@@ -17,7 +17,7 @@
 // CONSTANTES.
 // ----------------------------------------------------------------------------
 
-// Número de sectores: múltiplo de 4.
+// Nï¿½mero de sectores: mï¿½ltiplo de 4.
 #define SECTORES 180
 
 #define VERDADERO 1
@@ -28,12 +28,12 @@
 // TIPOS.
 // ----------------------------------------------------------------------------
 
-// Información acerca del robot.
+// Informaciï¿½n acerca del robot.
 
 // Dimensiones del robot.
-//   Consideramos el robot definido por un rectángulo. Numeramos sus
+//   Consideramos el robot definido por un rectï¿½ngulo. Numeramos sus
 //   dimensiones, medidas a partir de su centro en las direcciones principales,
-//   siguiendo la misma convención que para los sectores:
+//   siguiendo la misma convenciï¿½n que para los sectores:
 //     Dimension[0]: distancia desde el centro a la trasera del robot.
 //     Dimension[1]: distancia desde el centro a la izquierda del robot.
 //     Dimension[2]: distancia desde el centro al frontal del robot.
@@ -53,9 +53,9 @@ typedef struct {
 
   short int holonomo;
 
-  float E[SECTORES];   // Distancia desde el origen de SR2 al perímetro del robot.
-  float ds[SECTORES];  // Distancia de seguridad: desde el perímetro del robot al
-  // perímetro de seguridad.
+  float E[SECTORES];   // Distancia desde el origen de SR2 al perï¿½metro del robot.
+  float ds[SECTORES];  // Distancia de seguridad: desde el perï¿½metro del robot al
+  // perï¿½metro de seguridad.
 
   float velocidad_lineal_maxima;
   float velocidad_angular_maxima;
@@ -63,16 +63,16 @@ typedef struct {
   float aceleracion_lineal_maxima;
   float aceleracion_angular_maxima;
 
-  float discontinuidad; // Espacio mínimo por el que cabe el robot.
+  float discontinuidad; // Espacio mï¿½nimo por el que cabe el robot.
 
-  float T; // Período.
+  float T; // Perï¿½odo.
 
   TMatriz2x2 H; // Generador de movimientos: "Inercia" del robot.
   TMatriz2x2 G; // Generador de movimientos: "Fuerza" aplicada sobre el robot.
 
 } TInfoRobot;
 
-// Información acerca del objetivo.
+// Informaciï¿½n acerca del objetivo.
 
 typedef struct {
   TCoordenadas c0;
@@ -81,7 +81,7 @@ typedef struct {
   int s; // Sector.
 } TObjetivo;
 
-// Información acerca de la región escogida.
+// Informaciï¿½n acerca de la regiï¿½n escogida.
 
 #define DIRECCION_OBJETIVO                0
 #define DIRECCION_DISCONTINUIDAD_INICIAL  1
@@ -106,42 +106,44 @@ typedef struct {
   TRegion vector[SECTORES];
 } TVRegiones;
 
-// Información interna del meto-do de navegación.
+// Informaciï¿½n interna del meto-do de navegaciï¿½n.
 
 typedef struct {
 
   TObjetivo objetivo;
 
-  TSR SR1;                         // Estado actual del robot: posición y orientación
+  TSR SR1;                         // Estado actual del robot: posiciï¿½n y orientaciï¿½n
   TVelocities velocidades;         // Estado actual del robot: velocidades 
                                    // lineal y angular.
   TCoordenadasPolares d[SECTORES]; // Distancia desde el centro del robot al
-                                   // obstáculo más próximo en cada sector
-  float dr[SECTORES];              // Distancia desde el perímetro del robot al
-                                   // obstáculo más próximo en cada sector.
-  TVRegiones regiones;             // Sólo como información de cara al exterior:
+                                   // obstï¿½culo mï¿½s prï¿½ximo en cada sector
+  float dr[SECTORES];              // Distancia desde el perï¿½metro del robot al
+                                   // obstï¿½culo mï¿½s prï¿½ximo en cada sector.
+  TVRegiones regiones;             // Sï¿½lo como informaciï¿½n de cara al exterior:
                                    // Lista de todas las regiones encontradas en el
-                                   // proceso de selección.
-  int region;                      // Como almacenamos más de una región debemos
-                                   // indicar cuál es la escogida.
+                                   // proceso de selecciï¿½n.
+  int region;                      // Como almacenamos mï¿½s de una regiï¿½n debemos
+                                   // indicar cuï¿½l es la escogida.
 
   int obstaculo_izquierda, obstaculo_derecha;
 
-  float angulosin;                 // Sólo como información de cara al exterior:
-                                   // Ángulo antes de tener en cuenta los obstáculos
-                                   // más próximos.
-  float angulocon;                 // Sólo como información de cara al exterior:
-                                   // Ángulo después de tener en cuenta los
-                                   // obstáculos más próximos.
-  char situacion[20];              // Sólo como información de cara al exterior:
-                                   // Situación en la que se encuentra el robot.
-  char cutting[20];                // Sólo como información de cara al exterior:
+  float angulosin;                 // Sï¿½lo como informaciï¿½n de cara al exterior:
+                                   // ï¿½ngulo antes de tener en cuenta los obstï¿½culos
+                                   // mï¿½s prï¿½ximos.
+  float angulocon;                 // Sï¿½lo como informaciï¿½n de cara al exterior:
+                                   // ï¿½ngulo despuï¿½s de tener en cuenta los
+                                   // obstï¿½culos mï¿½s prï¿½ximos.
+  char situacion[20];              // Sï¿½lo como informaciï¿½n de cara al exterior:
+                                   // Situaciï¿½n en la que se encuentra el robot.
+  char cutting[20];                // Sï¿½lo como informaciï¿½n de cara al exterior:
                                    // Cutting aplicado al movimiento del robot.
 
-  float angulo;                    // Salida del algoritmo de navegación y entrada
-                                   // al generador de movimientos: dirección de
+                                   // angle from from navigation algorithm, used by
+                                   // movement generator ?!
+  float angulo;                    // Salida del algoritmo de navegaciï¿½n y entrada
+                                   // al generador de movimientos: direcciï¿½n de
                                    // movimiento deseada.
-  float velocidad;                 // Salida del algoritmo de navegación y entrada
+  float velocidad;                 // Salida del algoritmo de navegaciï¿½n y entrada
                                    // al generador de movimientos: velocidad lineal
                                    // deseada
 

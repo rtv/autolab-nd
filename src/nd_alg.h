@@ -44,7 +44,6 @@ typedef struct {
 } TCoordenadas;
 
 // System of reference
-
 typedef struct {
   TCoordenadas posicion;
   float orientacion;
@@ -118,8 +117,8 @@ typedef struct {
 // TVelocities (information of linear v, and angular velocities w)
 
 typedef struct {
-  float v;   // linear velocity
-  float w;   // angular velocity
+  float v;       // linear velocity
+  float w;       // angular velocity
   float v_theta; // velocity angle (just if holonomous vehicle)
 } TVelocities;
 
@@ -130,7 +129,7 @@ typedef struct {
 // TInfoMovimiento (information of the robot)
 
 typedef struct {
-  TSR SR1;     // Current vehicle location in GLOBAL coordinates
+  TSR SR1;                 // Current vehicle location in GLOBAL coordinates
   TVelocities velocidades; // Current vehicle velocities
 } TInfoMovimiento;
 
@@ -144,8 +143,8 @@ typedef struct {
 // This number depends on the maximum number of obstacle points that
 // you want to give to the ND
 
-//#define MAX_POINTS_SCENARIO 1440
-#define MAX_POINTS_SCENARIO 10000
+#define MAX_POINTS_SCENARIO 1440
+//#define MAX_POINTS_SCENARIO 10000
 
 typedef struct {
   int longitud;
