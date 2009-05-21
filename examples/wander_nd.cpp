@@ -99,6 +99,7 @@ extern "C" int Init ( Stg::Model* mod )
 
   // create robot and its controller
   ARobotCtrl* robotCtrl = new CWanderCtrl ( new CLooseStageRobot ( mod ) );
+  assert( robotCtrl );
 
   return 0; // ok
 }

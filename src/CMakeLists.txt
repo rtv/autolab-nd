@@ -13,17 +13,20 @@ SET( SOURCES
 	  nd_alg.cpp 
 )
 
-SET( LIBRARIES
+SET( MYLIBS
+  autolab-nd
   ${RAPI_LIBRARIES}
 )
 
 # if Stage is present, add code for visualizing ND in Stage
 if( STAGE_FOUND )
+  MESSAGE( ${INDENT} "Building Stage visualization" )
   SET( HEADERS ${HEADERS} ndvis.h )
   SET( SOURCES ${SOURCES} ndvis.cpp )	 
-  SET( LIBRARIES ${LIBRARIES} ${STAGE_LIBRARIES} ${OPENGL_LIBRARIES} )
+  SET( MYLIBS ${MYLIBS} ${STAGE_LIBRARIES} ${OPENGL_LIBRARY} )
+  INCLUDE_DIRECTORIES( ${STAGE_INCLUDE_DIRS} )
+  LINK_DIRECTORIES( ${STAGE_LIBRARY_DIRS} )
 endif ( STAGE_FOUND )
-
 
 # build a shared library
 ADD_LIBRARY( autolab-nd SHARED ${SOURCES} )
@@ -33,7 +36,7 @@ SET_TARGET_PROPERTIES( autolab-nd PROPERTIES
   VERSION ${VERSION}
 )
 
-TARGET_LINK_LIBRARIES( autolab-nd ${LIBRARIES} )
+TARGET_LINK_LIBRARIES(  ${MYLIBS} )
 
 INSTALL(TARGETS autolab-nd
   LIBRARY DESTINATION lib )
