@@ -1,6 +1,9 @@
 
 
-INCLUDE_DIRECTORIES( 
+INCLUDE(FindPkgConfig)
+PKG_SEARCH_MODULE( RAPISTAGE REQUIRED autolab-rapi-stage  )
+
+INCLUDE_DIRECTORIES(
   ../src
   ${RAPISTAGE_INCLUDE_DIRS}
 )
@@ -9,17 +12,14 @@ LINK_DIRECTORIES( ${STAGE_LIBRARY_DIRS} )
 # must come AFTER the LINK_DIRECTORIES() command. sigh...
 ADD_LIBRARY( wander_nd MODULE wander_nd.cpp )
 
-INCLUDE(FindPkgConfig)
-PKG_SEARCH_MODULE( RAPISTAGE REQUIRED autolab-rapi-stage  )
+
 
 
 # message( "*&^&^%" rapi stage lib dirs: ${RAPISTAGE_LIBRARY_DIRS} )
 
-
-
 TARGET_LINK_LIBRARIES( wander_nd
-  autolab-nd 		  
-  ${RAPISTAGE_LIBRARIES}						
+  autolab-nd
+  ${RAPISTAGE_LIBRARIES}
   ${OPENGL_LIBRARY}
 )
 

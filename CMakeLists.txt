@@ -26,7 +26,7 @@ ENDIF( RAPI_FOUND )
 
 # paths common to all subdirectories
 INCLUDE_DIRECTORIES( ${RAPI_INCLUDE_DIRS} )
-LINK_DIRECTORIES( ${RAPI_LIBRARY_DIRS}	)
+LINK_DIRECTORIES( ${RAPI_LIBRARY_DIRS} )
 
 
 # optional Stage stuff

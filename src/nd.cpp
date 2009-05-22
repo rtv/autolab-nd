@@ -322,9 +322,10 @@ void CNd::update ( float timestamp, CPose2d robotPose,
   gDx = hypot ( mGoal.mX - mRobotPose.mX,
                 mGoal.mY - mRobotPose.mY );
 
-  gDa = angleDiff ( mGoal.mYaw, mRobotPose.mYaw );
+  //gDa = angleDiff ( mGoal.mYaw, mRobotPose.mYaw );
+  gDa = NORMALIZE_ANGLE(mGoal.mYaw - mRobotPose.mYaw);
 
-  // Are we there?
+  // Are we at the goal yet ??
   if ( ( gDx < mDistEps ) && ( fabs ( gDa ) < mAngleEps ) ) {
     mFgActiveGoal = false;
     mVCmd = 0.0f;
@@ -337,6 +338,10 @@ void CNd::update ( float timestamp, CPose2d robotPose,
     // are we close enough in distance?
     if ( ( gDx < mDistEps ) || ( mFgTurningInPlace ) ) {
       PRT_MSG1 ( 9, "%s: Turning in place", mRobotName.c_str() );
+      mWCmd = mWMax * MAX(fabs(gDa) / PI, 0.1) * SIGN(gDa);
+      mVCmd = 0.0;
+     printf("mGoal.mYaw %f %f %f \n", R2D(mGoal.mYaw), R2D(mRobotPose.mYaw), mWCmd);
+/*
       // To make the robot turn (safely) to the goal orientation, we'll
       // give it a fake goal that is in the right direction, and just
       // ignore the translational velocity.
@@ -355,21 +360,22 @@ void CNd::update ( float timestamp, CPose2d robotPose,
 
       if ( !cmdVel ) {
         // Emergency stop
-        mVCmd = 0;
-        mWCmd = 0;
+        mVCmd = 0.0;
+        mWCmd = 0.0;
         mFgStalled = true;
         mFgActiveGoal = false;
         PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName.c_str() );
         return;
       }
+
       else {
         mFgStalled = false;
       }
       // we are turning in place, so ignore translational speed command
       mVCmd = 0.0f;
       mWCmd = cmdVel->w;
-
-      if ( !mFgTurningInPlace ) {
+*/
+      if ( not mFgTurningInPlace ) {
         // first time; cache the time and current heading error
         mRotateStartTime = mCurrentTime;
         mRotateMinError = fabs ( gDa );
@@ -402,8 +408,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
       // Have we moved far enough?
       float oDx = hypot ( mRobotPose.mX - mLastRobotPose.mX,
                           mRobotPose.mY - mLastRobotPose.mY );
-      float oDa = angleDiff ( mRobotPose.mYaw,
-                              mLastRobotPose.mYaw );
+      float oDa = NORMALIZE_ANGLE( mRobotPose.mYaw - mLastRobotPose.mYaw );
 
       if ( ( oDx > mTranslateStuckDist ) ||
            ( fabs ( oDa ) > mTranslateStuckAngle ) ) {

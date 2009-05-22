@@ -31,63 +31,61 @@ using namespace Rapi;
  */
 class CWanderCtrl : public ARobotCtrl
 {
- public:
-  /**
-	* Default constructor
-	* @param robot to control
-	*/
- CWanderCtrl(ARobot* robot)
-	: ARobotCtrl ( robot ),
-	  nd( "example robot"),
-	  vis( nd ),
-	  mDrivetrain(NULL)
-  {
-	 CLooseStageRobot* looseRobot = (CLooseStageRobot*)mRobot;	 	 
-	 looseRobot->findDevice ( mDrivetrain, "position:0" );
-	 
-	 CLooseStageLaser* laser = NULL;
-	 looseRobot->findDevice ( laser, "laser:0" );
-	 
-	 if ( rapiError->hasError() ) {
-		rapiError->print();
-		exit ( -1 );
-	 }
+  public:
+    /**
+    * Default constructor
+    * @param robot to control
+    */
+    CWanderCtrl ( ARobot* robot )
+        : ARobotCtrl ( robot ),
+        nd ( 0.4, 0.3, 0.2, "example robot" ),
+        vis ( nd ),
+        mDrivetrain ( NULL ) {
+      CLooseStageRobot* looseRobot = ( CLooseStageRobot* ) mRobot;
+      looseRobot->findDevice ( mDrivetrain, "position:0" );
 
-	 // insert the visualizer
-	 mDrivetrain->getStageModel()->AddVisualizer( &vis, true );
+      CLooseStageLaser* laser = NULL;
+      looseRobot->findDevice ( laser, "laser:0" );
 
-	 nd.addRangeFinder( laser );
-	 nd.setGoal( CPose2d(-7,0) );
-  }
- 
-  /** Default destructor */
-  ~CWanderCtrl(){};
+      if ( rapiError->hasError() ) {
+        rapiError->print();
+        exit ( -1 );
+      }
 
- protected:
-  
-  /** autolab-nd*/
-  CNd nd;
+      // insert the visualizer
+      mDrivetrain->getStageModel()->AddVisualizer ( &vis, true );
 
-  /** Stage Visualiser for ND */
-  NdVis vis;
+      nd.addRangeFinder ( laser );
+      nd.setGoal ( CPose2d ( -7,0 ) );
+    }
 
-  /** Stage position model */
-  CLooseStageDrivetrain2dof* mDrivetrain;
+    /** Default destructor */
+    ~CWanderCtrl() {};
 
-  /**
-	* Update controller for the current time step
-	* @param dt time since last upate [s]
-	*/
-  void updateData(float dt)
-  {
-	 nd.update( mDrivetrain->getTimeStamp(),
-					mDrivetrain->getOdometry()->getPose(),
-					mDrivetrain->getVelocity() );
-	 
-	 mDrivetrain->setVelocityCmd ( nd.getRecommendedVelocity() );
-	 
-	 //printf( "v: %.2f  w: %.2f\n", timestamp, vel.mVX, vel.mYawDot );
-  }
+  protected:
+
+    /** autolab-nd*/
+    CNd nd;
+
+    /** Stage Visualiser for ND */
+    NdVis vis;
+
+    /** Stage position model */
+    CLooseStageDrivetrain2dof* mDrivetrain;
+
+    /**
+    * Update controller for the current time step
+    * @param dt time since last upate [s]
+    */
+    void updateData ( float dt ) {
+      nd.update ( mDrivetrain->getTimeStamp(),
+                  mDrivetrain->getOdometry()->getPose(),
+                  mDrivetrain->getVelocity() );
+
+      mDrivetrain->setVelocityCmd ( nd.getRecommendedVelocity() );
+
+      //printf( "v: %.2f  w: %.2f\n", timestamp, vel.mVX, vel.mYawDot );
+    }
 };
 
 
@@ -100,7 +98,7 @@ extern "C" int Init ( Stg::Model* mod )
 
   // create robot and its controller
   ARobotCtrl* robotCtrl = new CWanderCtrl ( new CLooseStageRobot ( mod ) );
-  assert( robotCtrl );
+  assert ( robotCtrl );
 
   return 0; // ok
 }
