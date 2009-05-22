@@ -20,8 +20,14 @@
 // N�mero de sectores: m�ltiplo de 4.
 #define SECTORES 180
 
+#ifndef TRUE
 #define TRUE 1
+#endif
+
+#ifndef FALSE
 #define FALSE 0
+#endif
+
 #define NO_SIGNIFICATIVO -1
 
 // ----------------------------------------------------------------------------
