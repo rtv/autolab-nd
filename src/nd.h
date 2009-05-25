@@ -140,7 +140,7 @@ class CNd
      */
     bool hasActiveGoal();
     /**
-     * Checks if the robot is stalmLed
+     * Checks if the robot is stalled
      * @return true if stalled, false otherwise
      */
     bool isStalled();
@@ -169,7 +169,11 @@ class CNd
      * Resets Nd's state variables
      */
     void reset();
-
+    /**
+     * Checks if the robot has crossed the path normal
+     * @return true if it crossed the path normal, false otherwise
+     */
+    bool hasCrossedPathNormal() { return mFgCrossedPathNormal; };
     int getNumSectors();
 
   protected:
@@ -264,6 +268,8 @@ class CNd
     float mTranslateStuckAngle;
     /** Current driving direction 1 forward, 0 backwards */
     tDirection mCurrentDir;
+    /** Flags if the path normal was crossed */
+    bool mFgCrossedPathNormal;
     /** Flags if we are stalled */
     bool mFgStalled;
     /** Flag if turning in place or not */

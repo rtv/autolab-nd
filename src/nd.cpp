@@ -83,6 +83,7 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
   mFgWaiting = false;
   mFgTurningInPlace = false;
   mFgStalled = false;
+  mFgCrossedPathNormal = false;
   mFgAtGoal = true;
   mRotateStuckTime = 5.0;  // [s]
   mTranslateStuckTime = 2.0;

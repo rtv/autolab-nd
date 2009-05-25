@@ -11,11 +11,12 @@
 /*****************************************************************************/
 #include <stdio.h>
 #include <string.h>
-
+#include <assert.h>
+#include "utilities.h"
 #include "nd_alg.h"
 #include "nd2_alg.h"
 #include "printerror.h"
-#include <assert.h>
+
 //#include <stdlib.h>
 
 // ----------------------------------------------------------------------------
@@ -211,13 +212,15 @@ static void InicializarDS ( float dsmax, float dsmin )
       } else
         if ( angle >= limite3 )
           // r3
-          distancia = a / ( b * ( float ) sin ( angle ) - c * ( float ) cos ( angle ) );
+          distancia = a / ( b * ( float ) sin ( angle ) - c * ( float )
+                            cos ( angle ) );
 
         else
           if ( angle >= limite4 ) {
 
             // r4
-            distancia = p2.x * ( float ) cos ( angle ) + p2.y * ( float ) sin ( angle );
+            distancia = p2.x * ( float ) cos ( angle ) + p2.y * ( float )
+                        sin ( angle );
             distancia = distancia + ( float ) sqrt ( CUADRADO ( distancia ) - n );
 
           } else
@@ -230,7 +233,8 @@ static void InicializarDS ( float dsmax, float dsmin )
 
     robot.ds[i] = distancia - robot.E[i];
 
-    robot.ds[SECTORES-i] = robot.ds[i]; // El robot es sim�trico respecto del eje X.
+    robot.ds[SECTORES-i] = robot.ds[i]; // El robot es sim�trico respecto 
+                                        // del eje X.
   }
 
   //  robot.ds[SECTORES/2]=q4.x-robot.E[SECTORES/2]; // = q4.x/(float)cos(0.0F) - ...;
@@ -301,7 +305,8 @@ void InicializarND ( TParametersND *parametros )
 static void SectorizarMapa ( TInfoEntorno *mapa, TInfoND *nd )
 {
   TCoordenadas p;
-  TCoordenadasPolares pp; // M�dulos al cuadrado para evitar ra�ces innecesarias.
+  TCoordenadasPolares pp; // M�dulos al cuadrado para evitar ra�ces
+  // innecesarias.
   int i, j;
 
   // clear all sector bins from obstacles
@@ -339,7 +344,8 @@ static void SectorizarMapa ( TInfoEntorno *mapa, TInfoND *nd )
 
 static int ParadaEmergencia ( TInfoND *nd )
 {
-  // Devuelve 1 si hay peligro de colisi�n y hay que hacer una parada de emergencia;
+  // Devuelve 1 si hay peligro de colisi�n y hay que hacer una parada de
+  // emergencia;
   // devuelve 0 en caso contrario.
   // En la detecci�n de colisi�n se tiene en cuenta que el robot es sim�trico
   // respecto del eje X.
@@ -419,7 +425,8 @@ static int ObjetivoAlcanzable ( TInfoND *nd, TRegion *region, int direction_tipo
   int nl, nr;
 
   TCoordenadasPolares objetivo_intermedio_polares; // Respecto de SR1.
-  TCoordenadas objetivo_intermedio;                // Respecto de un SR con origen en el origen de SR1 y
+  TCoordenadas objetivo_intermedio;                // Respecto de un SR con origen
+  // en el origen de SR1 y
   // girado hasta que el semieje positivo de abscisas
   // coincide con la direccin al objetivo intermedio.
 
@@ -447,23 +454,25 @@ static int ObjetivoAlcanzable ( TInfoND *nd, TRegion *region, int direction_tipo
     }
 
     if ( nd->d[region->direction_sector].r < 0.0F )
-      ConstruirCoordenadasPra ( &objetivo_intermedio_polares, nd->d[sector_auxiliar].r +
+      ConstruirCoordenadasPra ( &objetivo_intermedio_polares,
+                                nd->d[sector_auxiliar].r +
                                 DISTANCIA_INFINITO,
-                                BisectrizAngleNoOrientado ( sector2angle (
-                                                               region->direction_sector ),
-                                                             nd->d[sector_auxiliar].a ) );
+                                BisectrizAngleNoOrientado (
+                                  sector2angle ( region->direction_sector ),
+                                  nd->d[sector_auxiliar].a ) );
     else {
       ConstruirCoordenadasCP ( &p1, nd->d[region->direction_sector] );
       ConstruirCoordenadasCP ( &p2, nd->d[sector_auxiliar] );
-      ConstruirCoordenadasPxy ( &objetivo_intermedio_polares, ( p1.x + p2.x ) / 2.0F,
-                                ( p1.y + p2.y ) / 2.0F );
+      ConstruirCoordenadasPxy ( &objetivo_intermedio_polares, ( p1.x + p2.x ) /
+                                2.0F, ( p1.y + p2.y ) / 2.0F );
     }
 
   }
 
   region->direction_angle = objetivo_intermedio_polares.a;
 
-  ConstruirCoordenadasCxy ( &objetivo_intermedio, objetivo_intermedio_polares.r, 0.0F );
+  ConstruirCoordenadasCxy ( &objetivo_intermedio, objetivo_intermedio_polares.r,
+                            0.0F );
 
   // Determinaci�n de si el objetivo est� dentro de un C-Obst�culo y
   // construcci�n de las listas de puntos FL y FR.
@@ -478,10 +487,12 @@ static int ObjetivoAlcanzable ( TInfoND *nd, TRegion *region, int direction_tipo
     if ( nd->d[i].r < 0.0F )
       continue;
 
-    ConstruirCoordenadasCra ( &p, nd->d[i].r, nd->d[i].a - region->direction_angle );
+    ConstruirCoordenadasCra ( &p, nd->d[i].r, nd->d[i].a -
+                              region->direction_angle );
 
     if ( ( p.x < 0.0F ) || ( p.x >= objetivo_intermedio.x ) ||
-         ( ( float ) fabs ( p.y ) > robot.discontinuidad ) ) // Si el obst�culo no est�
+         ( ( float ) fabs ( p.y ) > robot.discontinuidad ) )
+      // Si el obst�culo no est�
       // en el rect�ngulo que consideramos, pasamos al siguiente sector.
       continue;
 
@@ -496,9 +507,11 @@ static int ObjetivoAlcanzable ( TInfoND *nd, TRegion *region, int direction_tipo
       FR[nr++] = p;
   }
 
-  // Determinaci�n de si los obst�culos nos impiden alcanzar el objetivo intermedio.
+  // Determinaci�n de si los obst�culos nos impiden alcanzar el objetivo
+  // intermedio.
 
-  limite = CUADRADO ( robot.discontinuidad ); // Para no hacer ra�ces cuadradas dentro de los bucles.
+  limite = CUADRADO ( robot.discontinuidad ); // Para no hacer ra�ces cuadradas
+  // dentro de los bucles.
 
   for ( i = 0; i < nl; i++ )
     for ( j = 0; j < nr; j++ )
@@ -941,11 +954,14 @@ static float solHSWR ( TInfoND *nd )
 
   if ( region->direction_tipo == DIRECTION_DISCONTINUIDAD_INICIAL ) {
     return ( nd->d[DECREMENTAR_SECTOR ( region->principio ) ].a
-             - ( float ) atan2 ( ( robot.discontinuidad / 2.0F + robot.ds[SECTORES/2] ),
-                                 nd->d[DECREMENTAR_SECTOR ( region->principio ) ].r ) );
+             - ( float ) atan2 ( ( robot.discontinuidad / 2.0F +
+                                   robot.ds[SECTORES/2] ),
+                                 nd->d[DECREMENTAR_SECTOR (
+                                         region->principio ) ].r ) );
   } else {
     return ( nd->d[INCREMENTAR_SECTOR ( region->final ) ].a
-             + ( float ) atan2 ( ( robot.discontinuidad / 2.0F + robot.ds[SECTORES/2] ),
+             + ( float ) atan2 ( ( robot.discontinuidad / 2.0F +
+                                   robot.ds[SECTORES/2] ),
                                  nd->d[INCREMENTAR_SECTOR ( region->final ) ].r ) );
   }
 }
@@ -966,35 +982,38 @@ static float solLS1 ( TInfoND *nd )
   if ( final - nd->regiones.vector[nd->region].principio > SECTORES / 4 ) {
     if ( region->direction_tipo == DIRECTION_DISCONTINUIDAD_INICIAL )
       angle_parcial = nd->d[DECREMENTAR_SECTOR ( region->principio ) ].a
-                       - ( float ) atan2 ( ( robot.discontinuidad / 2 +
-                                             robot.ds[SECTORES/2] ),
-                                           nd->d[DECREMENTAR_SECTOR (
-                                                   region->principio ) ].r );
+                      - ( float ) atan2 ( ( robot.discontinuidad / 2 +
+                                            robot.ds[SECTORES/2] ),
+                                          nd->d[DECREMENTAR_SECTOR (
+                                                  region->principio ) ].r );
     else
       angle_parcial = nd->d[INCREMENTAR_SECTOR ( region->final ) ].a
-                       + ( float ) atan2 ( ( robot.discontinuidad / 2 +
-                                             robot.ds[SECTORES/2] ),
-                                           nd->d[INCREMENTAR_SECTOR (
-                                                   region->final ) ].r );
+                      + ( float ) atan2 ( ( robot.discontinuidad / 2 +
+                                            robot.ds[SECTORES/2] ),
+                                          nd->d[INCREMENTAR_SECTOR (
+                                                  region->final ) ].r );
   } else
-    angle_parcial = sector2angle ( ( ( region->principio + final ) / 2 ) % SECTORES );
+    angle_parcial = sector2angle ( ( ( region->principio + final ) / 2 ) %
+                                   SECTORES );
 
   if ( nd->obstaculo_left != -1 ) {
     angle_cota = AngleNormalizado ( nd->d[nd->obstaculo_left].a + PI -
-                                      angle_parcial ) + angle_parcial;
+                                    angle_parcial ) + angle_parcial;
     dist_obs_dsegur = nd->dr[nd->obstaculo_left] /
                       robot.ds[nd->obstaculo_left];
   } else {
     angle_cota = AngleNormalizado ( nd->d[nd->obstaculo_right].a + PI -
-                                      angle_parcial ) + angle_parcial;
+                                    angle_parcial ) + angle_parcial;
     dist_obs_dsegur = nd->dr[nd->obstaculo_right] / robot.ds[nd->obstaculo_right];
   }
 
   // Codigo Osuna
-  //return AngleNormalizado(angle_parcial * dist_obs_dsegur  + angle_cota * (1-dist_obs_dsegur));
+  //return AngleNormalizado(angle_parcial * dist_obs_dsegur  + angle_cota *
+  // (1-dist_obs_dsegur));
 
   // Codigo Minguez
-  anglePrueba = angle_parcial * dist_obs_dsegur  + angle_cota * ( 1 - dist_obs_dsegur );
+  anglePrueba = angle_parcial * dist_obs_dsegur  + angle_cota *
+                ( 1 - dist_obs_dsegur );
 
 
   if ( anglePrueba > M_PI )
@@ -1008,7 +1027,6 @@ static float solLS1 ( TInfoND *nd )
 }
 //-----------------------------------------------------------------------------
 // IterarND / control_angle / solLSG
-
 static float solLSG ( TInfoND *nd )
 {
 
@@ -1018,18 +1036,22 @@ static float solLSG ( TInfoND *nd )
 
   if ( nd->obstaculo_left != -1 ) {
     // something about left
-    angle_cota = AngleNormalizado ( nd->d[nd->obstaculo_left].a + PI - angle_parcial ) + angle_parcial;
+    angle_cota = AngleNormalizado ( nd->d[nd->obstaculo_left].a + PI -
+                                    angle_parcial ) + angle_parcial;
     dist_obs_dsegur = nd->dr[nd->obstaculo_left] / robot.ds[nd->obstaculo_left];
   } else {
     // something about right
-    angle_cota = AngleNormalizado ( nd->d[nd->obstaculo_right].a + PI - angle_parcial ) + angle_parcial;
+    angle_cota = AngleNormalizado ( nd->d[nd->obstaculo_right].a + PI -
+                                    angle_parcial ) + angle_parcial;
     dist_obs_dsegur = nd->dr[nd->obstaculo_right] / robot.ds[nd->obstaculo_right];
   }
 
   // Codigo Osuna
-  // return AngleNormalizado(angle_parcial * dist_obs_dsegur  + angle_cota * (1-dist_obs_dsegur));
+  // return AngleNormalizado(angle_parcial * dist_obs_dsegur  + angle_cota *
+  // (1-dist_obs_dsegur));
 
-  anglePrueba = angle_parcial * dist_obs_dsegur  + angle_cota * ( 1.0f - dist_obs_dsegur );
+  anglePrueba = angle_parcial * dist_obs_dsegur  + angle_cota *
+                ( 1.0f - dist_obs_dsegur );
 
 
 
@@ -1062,17 +1084,19 @@ static float solLS2 ( TInfoND *nd )
   ai = -M_PI / 2.0F;
 
   if ( ci <= cd )
-    return AngleNormalizado ( ang_par + ( ci - cd ) / ( ci + cd ) * ( ang_par - ai ) );
+    return AngleNormalizado ( ang_par + ( ci - cd ) / ( ci + cd ) *
+                              ( ang_par - ai ) );
   else
-    return AngleNormalizado ( ang_par + ( ci - cd ) / ( ci + cd ) * ( ad - ang_par ) );
+    return AngleNormalizado ( ang_par + ( ci - cd ) / ( ci + cd ) *
+                              ( ad - ang_par ) );
 }
 
 //-----------------------------------------------------------------------------
 // IterarND / control_angle
 static void control_angle ( TInfoND *nd )
 {
-  // C�lculo del �ngulo de movimiento en funci�n de la regi�n escogida para el
-  // movimiento del robot, la situaci�n del objetivo y,
+  // C�lculo del �ngulo de movimiento en funci�n de la regi�n escogida
+  // para el movimiento del robot, la situaci�n del objetivo y,
   // en su caso, la distancia a los obst�culos m�s pr�ximos.
 
   TRegion *region = & ( nd->regiones.vector[nd->region] );
@@ -1138,27 +1162,33 @@ static void control_velocidad ( TInfoND *nd )
 
 //----------------------------------------------------------------------------
 // Cutting / GenerarMovimientoFicticio
-static void GenerarMovimientoFicticio ( TInfoND *nd, float angle, TVelocities *velocidades )
+static void GenerarMovimientoFicticio ( TInfoND *nd, float angle, TVelocities
+                                        *velocidades )
 {
-
+  float heading;
+  float ci;
+  float cvmax;
+  float cd;
   // shutup compiler
   angle = angle;
 
-  float ci = ( nd->obstaculo_left != -1 ) ? nd->dr[nd->obstaculo_left] /
-             robot.ds[nd->obstaculo_left] : 1.0F;
+  heading = Rapi::LIMIT ( nd->angle, -HALF_PI, HALF_PI );
+
+  ci = ( nd->obstaculo_left != -1 ) ? nd->dr[nd->obstaculo_left] /
+       robot.ds[nd->obstaculo_left] : 1.0F;
   // Coeficiente de distancia por la left.
-  float cd = ( nd->obstaculo_right != -1 ) ? nd->dr[nd->obstaculo_right] /
-             robot.ds[nd->obstaculo_right] : 1.0F;
+  cd = ( nd->obstaculo_right != -1 ) ? nd->dr[nd->obstaculo_right] /
+       robot.ds[nd->obstaculo_right] : 1.0F;
   // Coeficiente de distancia por la right.
-  float cvmax = MAXIMO ( 0.2F, MINIMO ( ci, cd ) );
+  cvmax = MAXIMO ( 0.2F, MINIMO ( ci, cd ) );
 
-  velocidades->v = robot.velocidad_lineal_maxima * cvmax * ( float ) cos ( nd->angle );
+  velocidades->v = robot.velocidad_lineal_maxima * cvmax *
+                   ( float ) cos ( nd->angle );
   // Calculada en SR2C.
-  velocidades->w = robot.velocidad_angular_maxima * cvmax * ( float ) sin ( nd->angle );
+  velocidades->w = robot.velocidad_angular_maxima * cvmax *
+                   ( float ) sin ( nd->angle );
   // Calculada en SR2C.
-//  fprintf(depuracion,"%d: <a,ci,cd,cvmax,v,w>=<%f,%f,%f,%f,%f,%f>\n",++iteracion,nd->angle,ci,cd,cvmax,velocidades->v,velocidades->w);
 
-  //printf ( "ND: %s angle %f cvmax %f region %d \n",nd->situacion, R2D ( nd->angle ), cvmax, nd->region );
   // limit velocities
   AplicarCotas ( & ( velocidades->v ), 0.0F, robot.velocidad_lineal_maxima );
   AplicarCotas ( & ( velocidades->w ), -robot.velocidad_angular_maxima,
@@ -1187,11 +1217,11 @@ static void GiroBrusco ( TInfoND *nd, TVelocities *velocidades )
 
   ConstruirCoordenadasPxy ( &esquina, robot.Dimensiones[2], robot.Dimensiones[1] );
   right = ( nd->obstaculo_right != -1 ) && ( ( float )
-            fabs ( nd->d[nd->obstaculo_right].a ) <= esquina.a ) &&
-            ( nd->d[nd->obstaculo_right].r <= esquina.r + robot.enlarge );
+          fabs ( nd->d[nd->obstaculo_right].a ) <= esquina.a ) &&
+          ( nd->d[nd->obstaculo_right].r <= esquina.r + robot.enlarge );
   left = ( nd->obstaculo_left != -1 ) && ( ( float )
-              fabs ( nd->d[nd->obstaculo_left].a ) <= esquina.a ) &&
-              ( nd->d[nd->obstaculo_left].r <= esquina.r + robot.enlarge );
+         fabs ( nd->d[nd->obstaculo_left].a ) <= esquina.a ) &&
+         ( nd->d[nd->obstaculo_left].r <= esquina.r + robot.enlarge );
 
   if ( right && left ) {
     velocidades->w = 0.0F;
@@ -1372,7 +1402,7 @@ TVelocities *IterarND ( TCoordenadas objetivo,
   // Devuelve NULL si se requiere una parada de emergencia o si no encuentra
   // una regi�n por la que hacer avanzar el robot.
   // Devuelve un puntero a (0.0F,0.0F) si se ha alcanzado el objetivo.
-  TInfoND* nd = (TInfoND*)info;
+  TInfoND* nd = ( TInfoND* ) info;
 
   // Valgrind says that some of the values in this nd structure are
   // uninitialized when it's accessed in ObtenerSituacionCutting(), so I'm
