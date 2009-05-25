@@ -131,48 +131,48 @@ void TransformacionInversa( TSR *SR, TCoordenadas *p )
 /* Normalizaci�n de �ngulos.                                             */
 /* ------------------------------------------------------------------------- */
 
-float AnguloNormalizado( float angulo )
+float AngleNormalizado( float angle )
 {
   // Debe pertenecer a (-PI,PI].
   // Todos los �ngulos que proceden de un "atan2" pertenecen a ese intervalo.
 
-  return ( float )atan2( sin( angulo ), cos( angulo ) );
+  return ( float )atan2( sin( angle ), cos( angle ) );
 }
 
-int AnguloPerteneceIntervaloOrientadoCerrado( float angulo, float limite1, float limite2 )
+int AnglePerteneceIntervaloOrientadoCerrado( float angle, float limite1, float limite2 )
 {
   // Intervalo orientado.
   // Esta funci�n devuelve 1 si el �ngulo est� entre los l�mites; 0 en
   // caso contrario. Todos los par�metros deben pertenecer al intervalo
   // (-PI,PI]. Si limite1==limite2, entonces el intervalo es de longitud 0.
 
-  return ( limite2 >= limite1 ) ? (( angulo >= limite1 ) &&
-         ( angulo <= limite2 ) ) :
-         (( angulo >= limite1 ) || ( angulo <= limite2 ) );
+  return ( limite2 >= limite1 ) ? (( angle >= limite1 ) &&
+         ( angle <= limite2 ) ) :
+         (( angle >= limite1 ) || ( angle <= limite2 ) );
 }
 
-float BisectrizAnguloOrientado( float limite1, float limite2 )
+float BisectrizAngleOrientado( float limite1, float limite2 )
 {
   // Devuelve la bisectriz del �ngulo de "limite1" a "limite2" en sentido
   // contrario a las agujas del reloj.
 
   float resultado = ( limite1 + limite2 ) / 2.0F;
 
-  return ( limite1 <= limite2 ) ? resultado : AnguloNormalizado( resultado + PI );
+  return ( limite1 <= limite2 ) ? resultado : AngleNormalizado( resultado + PI );
 }
 
-float BisectrizAnguloNoOrientado( float limite1, float limite2 )
+float BisectrizAngleNoOrientado( float limite1, float limite2 )
 {
   // Devuelve la bisectriz del menor �ngulo formado por "limite1" y 
   // "limite2", ya sea en el sentido de las agujas del reloj o en el opuesto.
 
   float resultado = ( limite1 + limite2 ) / 2.0F;
 
-  return (( float )fabs( limite1 -limite2 ) <= PI ) ? resultado : AnguloNormalizado(
+  return (( float )fabs( limite1 -limite2 ) <= PI ) ? resultado : AngleNormalizado(
            resultado + PI );
 }
 
-float AmplitudAnguloOrientado( float limite1, float limite2 )
+float AmplitudAngleOrientado( float limite1, float limite2 )
 {
   // Devuelve la amplitud del �ngulo de "limite1" a "limite2" en sentido contrario a
 // las agujas del reloj.
@@ -182,7 +182,7 @@ float AmplitudAnguloOrientado( float limite1, float limite2 )
   return ( limite1 <= limite2 ) ? amplitud : 2.0F*PI - amplitud;
 }
 
-float AmplitudAnguloNoOrientado( float limite1, float limite2 )
+float AmplitudAngleNoOrientado( float limite1, float limite2 )
 {
   // Devuelve la amplitud del menor �ngulo formado por "limite1" y "limite2", ya sea
 // en el sentido de las agujas del reloj o en el opuesto.
@@ -197,20 +197,20 @@ float AmplitudAnguloNoOrientado( float limite1, float limite2 )
 /* extremos el origen.                                                       */
 /* ------------------------------------------------------------------------- */
 
-void MinimaDistanciaCuadradoCorte( TCoordenadasPolares pp1, TCoordenadasPolares pp2, float angulo, float *distancia )
+void MinimaDistanciaCuadradoCorte( TCoordenadasPolares pp1, TCoordenadasPolares pp2, float angle, float *distancia )
 {
   // Mediante su aplicaci�n reiterada obtenemos el m�s pr�ximo de entre los puntos de
   // corte de un
   // grupo de segmentos con una direcci�n determinada.
   // "p1" y "p2" son los extremos de un segmento.
-  // "angulo" es la direcci�n de corte (desde el origen).
+  // "angle" es la direcci�n de corte (desde el origen).
   // "distancia" es la menor distancia obtenida hasta el momento.
 
   TCoordenadas p1, p2;
   float x;
 
-  pp1.a = AnguloNormalizado( pp1.a - angulo );
-  pp2.a = AnguloNormalizado( pp2.a - angulo );
+  pp1.a = AngleNormalizado( pp1.a - angle );
+  pp2.a = AngleNormalizado( pp2.a - angle );
 
   ConstruirCoordenadasCP( &p1, pp1 );
   ConstruirCoordenadasCP( &p2, pp2 );

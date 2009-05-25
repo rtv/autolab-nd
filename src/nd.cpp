@@ -84,7 +84,7 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
   mFgTurningInPlace = false;
   mFgStalled = false;
   mFgAtGoal = true;
-  mRotateStuckTime = 5.0;  // [s]
+  mRotateStuckTime = 10.0;  // [s]
   mTranslateStuckTime = 2.0;
   mTranslateStuckDist = 0.25;
   mTranslateStuckAngle = D2R ( 20.0 );
@@ -340,7 +340,6 @@ void CNd::update ( float timestamp, CPose2d robotPose,
       PRT_MSG1 ( 9, "%s: Turning in place", mRobotName.c_str() );
       mWCmd = mWMax * MAX(fabs(gDa) / PI, 0.1) * SIGN(gDa);
       mVCmd = 0.0;
-     printf("mGoal.mYaw %f %f %f \n", R2D(mGoal.mYaw), R2D(mRobotPose.mYaw), mWCmd);
 /*
       // To make the robot turn (safely) to the goal orientation, we'll
       // give it a fake goal that is in the right direction, and just
@@ -417,10 +416,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
       }
       else {
         // Has it been long enough?
-        float t;
-        t = mCurrentTime;
-
-        if ( ( t - mTranslateStartTime ) > mTranslateStuckTime ) {
+        if ( ( mCurrentTime - mTranslateStartTime ) > mTranslateStuckTime ) {
           PRT_MSG1 ( 6, "%s: ran out of time trying to get to goal",
                      mRobotName.c_str() );
           mVCmd = 0;
