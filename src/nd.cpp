@@ -65,12 +65,13 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
   mBackDim = backDim;
   mSideDim = sideDim;
 
-
-  mNumSensors = 0;
+  mState = AT_GOAL;
+  mSensorList.clear();
   mReadingIndex = 0;
   mFgReadingBufferInitialized = false;
+  mRobotRadius = 0.4;
   mSafetyDist = 0.1;
-  mAvoidDist = 0.6;
+  mAvoidDist = 0.4;
   mDistEps = 0.6;
   mAngleEps = D2R ( 10.0 );
   mVMax = 0.45;
@@ -83,6 +84,7 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
   mFgWaiting = false;
   mFgTurningInPlace = false;
   mFgStalled = false;
+  mFgCrossedPathNormal = false;
   mFgAtGoal = true;
   mRotateStuckTime = 10.0;  // [s]
   mTranslateStuckTime = 2.0;
@@ -95,12 +97,19 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
   mRotateMinError = 0.0;
   mRotateStartTime = 0.0;
 
+  mFrontBox.rect.setCoordinates(0.12, -0.25, 0.4, 0.25);
+  mBackBox.rect.setCoordinates(-0.4, -0.25, -0.12, 0.25);
+
+  mFrontLeftBox.rect.setCoordinates ( 0.0, 0.0, 0.4, 0.3 );
+  mFrontRightBox.rect.setCoordinates ( 0.0,  -0.3, 0.4, 0.0 );
+  mBackLeftBox.rect.setCoordinates ( -0.4, -0.0, 0.0, 0.3 );
+  mBackRightBox.rect.setCoordinates ( -0.4, -0.3, 0.0, 0.0 );
 
   // Fill in the ND's parameter structure
 
-  // Rectangular geometry
-  // mNDparam.geometryRect = 1;
-  mNDparam.geometryRect = 1;
+  // Rectangular geometry = 1, round = 0
+  //mNDparam.geometryRect = 1;
+  mNDparam.geometryRect = 0;
   // Distance from the wheel to the front
   mNDparam.front = frontDim + mSafetyDist;
   // Distance from the wheel to the back
@@ -121,7 +130,7 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
 
   mNDparam.dsmax = mAvoidDist; // Security distance
   mNDparam.dsmin = mNDparam.dsmax / 4.0F;
-  //NDparametros.enlarge = NDparametros.dsmin/2.0F;
+  //mNDparam.enlarge = NDparametros.dsmin/2.0F;
   mNDparam.enlarge = mNDparam.dsmin * 0.2F;
 
   mNDparam.discontinuity = 1.5 * mNDparam.left;  // Discontinuity
@@ -130,10 +139,9 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
 
   // Pass the structure to ND for initialization
   InicializarND ( &mNDparam );
-  // set current driving direction to forward
-  mCurrentDir = FORWARD;
 
   reset();
+  mInfo.regiones.longitud = 0;
 }
 //-----------------------------------------------------------------------------
 CNd::~CNd()
@@ -189,10 +197,7 @@ void CNd::setEpsilonDistance ( float dist )
 //-----------------------------------------------------------------------------
 void CNd::addRangeFinder ( ARangeFinder* sensor )
 {
-  if ( mNumSensors < MAX_ND_SENSORS ) {
-    mSensorList[mNumSensors] = sensor;
-    mNumSensors++;
-  }
+  mSensorList.push_back ( sensor );
 }
 //-----------------------------------------------------------------------------
 bool CNd::atGoal()
@@ -210,11 +215,6 @@ bool CNd::hasActiveGoal()
   return mFgActiveGoal;
 }
 //-----------------------------------------------------------------------------
-int CNd::getNumSectors()
-{
-  return SECTORES;
-}
-//-----------------------------------------------------------------------------
 void CNd::setGoal ( CPose2d goal )
 {
   mGoal = goal;
@@ -224,45 +224,91 @@ void CNd::setGoal ( CPose2d goal )
   mFgTurningInPlace = false;
   mTranslateStartTime = mCurrentTime;
   mLastRobotPose = mRobotPose;
+  mState = NORMAL;
 }
 //-----------------------------------------------------------------------------
 void CNd::processSensors()
 {
+  ARangeFinder* rf;
   float rx, ry;
+  float range;
   float globalSensorX, globalSensorY, globalSensorAngle;
   float cosR, sinR;
   float maxRange;
+  CPoint2d point;
+
+  mFrontLeftBox.fgObstacle = false;
+  mFrontRightBox.fgObstacle = false;
+  mBackLeftBox.fgObstacle = false;
+  mBackRightBox.fgObstacle = false;
+  mBackBox.fgObstacle = false;
+  mFrontBox.fgObstacle = false;
 
   // sin and cosin of robots headings
   sinR = sin ( mRobotPose.mYaw );
   cosR = cos ( mRobotPose.mYaw );
 
+  mFgRobotRadiusPenetrated = false;
   mReadingIndex = 0;
-  for ( int s = 0; s < mNumSensors; s++ ) {
-    maxRange = mSensorList[s]->getMaxRange();
-    for ( unsigned int i = 0; i < mSensorList[s]->getNumSamples(); i++ ) {
 
-      if ( mSensorList[s]->mRangeData[i].range < maxRange ) {
+  if ( mSensorList.empty() ) {
+    PRT_ERR1 ( "%s: No range finders available", mRobotName.c_str() );
+    mObstacles.longitud = 0;
+    return;
+  }
 
-        // calculate global sensor coordinates
-        rx = mSensorList[s]->mRelativeBeamPose[i].mX;
-        ry = mSensorList[s]->mRelativeBeamPose[i].mY;
+  for ( unsigned int s = 0; s < mSensorList.size(); s++ ) {
+    rf = mSensorList[s];
+    maxRange = rf->getMaxRange();
+    for ( unsigned int i = 0; i < rf->getNumSamples(); i++ ) {
 
-        globalSensorX = mRobotPose.mX + rx * cosR - ry * sinR;
-        globalSensorY = mRobotPose.mY + rx * sinR + ry * cosR;
-        globalSensorAngle = NORMALIZE_TO_2PI ( mRobotPose.mYaw +
-                                               mSensorList[s]->
-                                               mRelativeBeamPose[i].mYaw );
+      range = rf->mRangeData[i].range;
+      //if ( range < maxRange ) {
 
-        // convert to cartesian coords, in global coordinate system
-        mObstacles.punto[mReadingIndex].x = globalSensorX +
-                                            mSensorList[s]->mRangeData[i].range *
-                                            cos ( globalSensorAngle );
-        mObstacles.punto[mReadingIndex].y = globalSensorY +
-                                            mSensorList[s]->mRangeData[i].range *
-                                            sin ( globalSensorAngle );
-        mReadingIndex ++;
+      if ( range < mRobotRadius )
+        mFgRobotRadiusPenetrated = true;
+
+      // calculate global sensor coordinates
+      rx = rf->mRelativeBeamPose[i].mX;
+      ry = rf->mRelativeBeamPose[i].mY;
+
+      globalSensorX = mRobotPose.mX + rx * cosR - ry * sinR;
+      globalSensorY = mRobotPose.mY + rx * sinR + ry * cosR;
+      globalSensorAngle = normalizeAngle ( mRobotPose.mYaw +
+                                            rf->mRelativeBeamPose[i].mYaw );
+
+      // convert to cartesian coords, in global coordinate system
+      mObstacles.punto[mReadingIndex].x = globalSensorX + range *
+                                          cos ( globalSensorAngle );
+      mObstacles.punto[mReadingIndex].y = globalSensorY + range *
+                                          sin ( globalSensorAngle );
+      mReadingIndex ++;
+
+      //***************************************
+      // check boxes for obstacles
+      // the boxes are defined in robot CS so are the range readings
+      point.mX =  rx + cos ( rf->mRelativeBeamPose[i].mYaw ) * range;
+      point.mY =  ry + sin ( rf->mRelativeBeamPose[i].mYaw ) * range;
+
+      if ( mFrontBox.rect.isInside ( point ) ) {
+        mFrontBox.fgObstacle = true; // not clear
       }
+      if ( mBackBox.rect.isInside ( point ) ) {
+        mBackBox.fgObstacle = true; // not clear
+      }
+      if ( mFrontLeftBox.rect.isInside ( point ) ) {
+        mFrontLeftBox.fgObstacle = true; // not clear
+      }
+      if ( mFrontRightBox.rect.isInside ( point ) ) {
+        mFrontRightBox.fgObstacle = true; // not clear
+      }
+      if ( mBackLeftBox.rect.isInside ( point ) ) {
+        mBackLeftBox.fgObstacle = true; // not clear
+      }
+      if ( mBackRightBox.rect.isInside ( point ) ) {
+        mBackRightBox.fgObstacle = true; // not clear
+      }
+      //}
 
       if ( mReadingIndex >= MAX_POINTS_SCENARIO ) {
         mReadingIndex = 0;
@@ -276,10 +322,198 @@ void CNd::processSensors()
   }
 }
 //-----------------------------------------------------------------------------
+/*
 void CNd::update ( float timestamp, CPose2d robotPose,
                    CVelocity2d robotVelocity )
 {
+  tState prevState = mState;
   TVelocities *cmdVel;
+  TCoordenadas goal;
+  TInfoMovimiento motionData;
+  float goalDX, goalDA;
+
+  // do we have a goal?
+  if ( !mFgActiveGoal )
+    return;
+
+  // set robot pose in GLOBAL CS
+  motionData.SR1.posicion.x = robotPose.mX;
+  motionData.SR1.posicion.y = robotPose.mY;
+  motionData.SR1.orientacion = robotPose.mYaw;
+  // set velocity
+  motionData.velocidades.v = robotVelocity.mXDot;
+  motionData.velocidades.w = robotVelocity.mYawDot;
+  motionData.velocidades.v_theta = 0.0f;
+
+
+  mRobotPose = robotPose;
+
+  processSensors();
+
+  // The current odometric goal
+  goal.x = mGoal.mX;
+  goal.y = mGoal.mY;
+
+  // calculate distance to goal and angular offset
+  goalDX = mGoal.distance ( mRobotPose );
+  goalDA = mGoal.angleDifference ( mRobotPose );
+
+  // check if we have reached the goal pose
+  if ( ( goalDX <= mDistEps ) &&
+       ( goalDA <= mAngleEps ) ) {
+    mState = AT_GOAL;
+  }
+
+  // Call ND and get a velocity command
+  cmdVel = IterarND ( goal,            // goal
+                      mDistEps,        // goal tolerance
+                      &motionData,     // current velocity of the robot
+                      &mObstacles,     // list of the obstacle points in global cs
+                      &mInfo );        // ND puts internal data in here
+
+  if ( cmdVel == NULL ) {
+    PRT_WARN1 ( "%s: Some thing went wrong, ND returned NULL", mRobotName.c_str() );
+    mVCmd = 0.0f;
+    mWCmd = 0.0f;
+    return;
+  }
+
+  switch ( mState ) {
+    case NORMAL:
+      mFgStalled = false;
+      mFgTurningInPlace = false;
+      mVCmd = cmdVel->v;
+      mWCmd = cmdVel->w;
+
+      if ( checkStalled() )
+        mState = PRE_STALLED;
+
+      if ( goalDX < mDistEps )
+        mState = ALIGNING;
+      break;
+
+    case ALIGNING:
+      if ( not mFgTurningInPlace ) {
+        // first time; cache the time and current heading error
+        mRotateStartTime = mCurrentTime;
+        mRotateMinError = fabs ( goalDA );
+        mFgTurningInPlace = true;
+        PRT_MSG1 ( 9, "%s: Turning in place", mRobotName.c_str() );
+      }
+      else {
+        // Are we making progress?
+        if ( fabs ( goalDA ) < mRotateMinError ) {
+          // yes; reset the time
+          mRotateStartTime = mCurrentTime;
+          mRotateMinError = fabs ( goalDA );
+        }
+        else {
+          // no; have we run out of time?
+          if ( ( mCurrentTime - mRotateStartTime ) > mRotateStuckTime ) {
+            mState = PRE_STALLED;
+          }
+        }
+      }
+      printf ( "%s %f \n", mRobotName.c_str(), R2D ( goalDA ) );
+
+      if ( not mFgRobotRadiusPenetrated ) {
+        mWCmd = mWMax * max ( fabs ( goalDA ) / PI, 0.1 ) * SIGN ( goalDA );
+        mVCmd = 0.0;
+      }
+      else {
+        mVCmd = 0.0;
+        mWCmd = 0.0;
+        PRT_MSG1 ( 1, "%s: cannot turn, obstacle too close\n", mRobotName.c_str() );
+      }
+      break;
+
+    case AT_GOAL:
+      mVCmd = 0.0f;
+      mWCmd = 0.0f;
+      mFgAtGoal = true;
+      mFgActiveGoal = false;
+      mFgTurningInPlace = false;
+      break;
+
+
+    case PRE_STALLED:
+      if (mFgStateChanged && ( fabs ( mInfo.angle ) < HALF_PI ) ) {
+        mState = STALLED;
+      }
+      else {
+        mVCmd = 0.0f;
+        mWCmd = -mWMax * SIGN(mInfo.angle);
+      }
+      break;
+
+    case STALLED:
+      mVCmd = 0.0f;
+      mWCmd = 0.0f;
+      mFgStalled = true;
+      mFgTurningInPlace = false;
+      mFgActiveGoal = false;
+
+      break;
+  } // switch
+
+  if (mState != prevState )
+    mFgStateChanged = true;
+  else
+    mFgStateChanged = false;
+
+  mVCmd = threshold ( mVCmd, mVMin, mVMax );
+}
+*/
+//-----------------------------------------------------------------------------
+void CNd::checkCrossedPathNormal()
+{
+  float dist;
+  float pathNormalDist;
+  float pathX;
+  float pathY;
+
+  pathX = cos ( mGoal.mYaw );
+  pathY = sin ( mGoal.mYaw );
+  dist = mGoal.mX * pathX + mGoal.mY * pathY;
+
+  pathNormalDist = mRobotPose.mX * pathX +
+                   mRobotPose.mY * pathY - dist;
+
+  //printf("pathNormalDist %f \n", pathNormalDist);
+  if ( ( mPathNormalDist < 0 ) && ( pathNormalDist >= 0 ) )
+    mFgCrossedPathNormal = true;
+
+  mPathNormalDist = pathNormalDist;
+}
+//-----------------------------------------------------------------------------
+bool CNd::checkStalled()
+{
+  // Have we moved far enough?
+  float oDx = hypot ( mRobotPose.mX - mLastRobotPose.mX,
+                      mRobotPose.mY - mLastRobotPose.mY );
+  float oDa = normalizeAngle ( mRobotPose.mYaw - mLastRobotPose.mYaw );
+
+  if ( ( oDx > mTranslateStuckDist ) ||
+       ( fabs ( oDa ) > mTranslateStuckAngle ) ) {
+    mLastRobotPose = mRobotPose;
+    mTranslateStartTime = mCurrentTime;
+  }
+  else {
+    // Has it been long enough?
+    if ( ( mCurrentTime - mTranslateStartTime ) > mTranslateStuckTime ) {
+      PRT_MSG1 ( 6, "%s: ran out of time trying to get to goal",
+                 mRobotName.c_str() );
+      return true;
+    }
+  }
+  return false;
+}
+//-----------------------------------------------------------------------------
+
+void CNd::update ( float timestamp, CPose2d robotPose,
+                   CVelocity2d robotVelocity )
+{
+  TVelocities *cmdVel = NULL;
   TCoordenadas goal;
   TInfoMovimiento motionData;
   float gDx, gDa;
@@ -300,7 +534,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
   motionData.SR1.posicion.y = robotPose.mY;
   motionData.SR1.orientacion = robotPose.mYaw;
   // set velocity
-  motionData.velocidades.v = robotVelocity.mVX;
+  motionData.velocidades.v = robotVelocity.mXDot;
   motionData.velocidades.w = robotVelocity.mYawDot;
   motionData.velocidades.v_theta = 0.0f;
 
@@ -309,21 +543,12 @@ void CNd::update ( float timestamp, CPose2d robotPose,
 
   processSensors();
 
-  if ( mObstacles.longitud == 0 ) {
-    PRT_ERR1 ( "%s: No sensor data available, did you register a range finder ?",
-               mRobotName.c_str() );
-    return;
-  }
-
-  // TODO: put a smarter check earlier
-  //assert( mObstacles.longitud <= MAX_POINTS_SCENARIO );
-
   // are we at the goal?
   gDx = hypot ( mGoal.mX - mRobotPose.mX,
                 mGoal.mY - mRobotPose.mY );
 
   //gDa = angleDiff ( mGoal.mYaw, mRobotPose.mYaw );
-  gDa = NORMALIZE_ANGLE(mGoal.mYaw - mRobotPose.mYaw);
+  gDa = normalizeAngle ( mGoal.mYaw - mRobotPose.mYaw );
 
   // Are we at the goal yet ??
   if ( ( gDx < mDistEps ) && ( fabs ( gDa ) < mAngleEps ) ) {
@@ -338,42 +563,49 @@ void CNd::update ( float timestamp, CPose2d robotPose,
     // are we close enough in distance?
     if ( ( gDx < mDistEps ) || ( mFgTurningInPlace ) ) {
       PRT_MSG1 ( 9, "%s: Turning in place", mRobotName.c_str() );
-      mWCmd = mWMax * MAX(fabs(gDa) / PI, 0.1) * SIGN(gDa);
-      mVCmd = 0.0;
-/*
+      printf ( "%s %f \n", mRobotName.c_str(), R2D ( gDa ) );
+
+      if ( not mFgRobotRadiusPenetrated ) {
+        mWCmd = mWMax * max ( fabs ( gDa ) / PI, 0.1 ) * sign ( gDa );
+        mVCmd = 0.0;
+      }
+      else {
+        mVCmd = 0.0;
+        mWCmd = 0.0;
+        printf ( "%s: cannot turn, obstacle too close\n", mRobotName.c_str() );
+      }
       // To make the robot turn (safely) to the goal orientation, we'll
       // give it a fake goal that is in the right direction, and just
       // ignore the translational velocity.
       goal.x = mRobotPose.mX + 10.0 * cos ( mGoal.mYaw );
       goal.y = mRobotPose.mY + 10.0 * sin ( mGoal.mYaw );
 
-      // In case we went backward to get here, reverse direction so that we
-      // can attain the goal heading
-      setDirection ( FORWARD );
 
-      cmdVel = IterarND ( goal,            // goal
-                          mDistEps,        // goal tolerance
-                          &motionData,     // current velocity of the robot
-                          &mObstacles,     // list of the obstacle points in global cs
-                          &mInfo );        // ND puts internal data in here
+      /*
+                  cmdVel = IterarND ( goal,            // goal
+                                      mDistEps,        // goal tolerance
+                                      &motionData,     // current velocity of the robot
+                                      &mObstacles,     // list of the obstacle points in global cs
+                                      &mInfo );        // ND puts internal data in here
 
-      if ( !cmdVel ) {
-        // Emergency stop
-        mVCmd = 0.0;
-        mWCmd = 0.0;
-        mFgStalled = true;
-        mFgActiveGoal = false;
-        PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName.c_str() );
-        return;
-      }
+                  if ( !cmdVel ) {
+                    // Emergency stop
+                    mVCmd = 0.0;
+                    mWCmd = 0.0;
+                    mFgStalled = true;
+                    mFgActiveGoal = false;
+                    PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName.c_str() );
+                    return;
+                  }
+                  else {
+                    mFgStalled = false;
+                  }
 
-      else {
-        mFgStalled = false;
-      }
-      // we are turning in place, so ignore translational speed command
-      mVCmd = 0.0f;
-      mWCmd = cmdVel->w;
-*/
+                  // we are turning in place, so ignore translational speed command
+                  //mVCmd = 0.0f;
+                  //mWCmd = cmdVel->w;
+      */
+
       if ( not mFgTurningInPlace ) {
         // first time; cache the time and current heading error
         mRotateStartTime = mCurrentTime;
@@ -402,12 +634,12 @@ void CNd::update ( float timestamp, CPose2d robotPose,
       }
     }
 
-    // we're far away; execute the normal ND loop
+// we're far away; execute the normal ND loop
     else {
-      // Have we moved far enough?
+// Have we moved far enough?
       float oDx = hypot ( mRobotPose.mX - mLastRobotPose.mX,
                           mRobotPose.mY - mLastRobotPose.mY );
-      float oDa = NORMALIZE_ANGLE( mRobotPose.mYaw - mLastRobotPose.mYaw );
+      float oDa = normalizeAngle ( mRobotPose.mYaw - mLastRobotPose.mYaw );
 
       if ( ( oDx > mTranslateStuckDist ) ||
            ( fabs ( oDa ) > mTranslateStuckAngle ) ) {
@@ -419,29 +651,17 @@ void CNd::update ( float timestamp, CPose2d robotPose,
         if ( ( mCurrentTime - mTranslateStartTime ) > mTranslateStuckTime ) {
           PRT_MSG1 ( 6, "%s: ran out of time trying to get to goal",
                      mRobotName.c_str() );
-          mVCmd = 0;
-          mWCmd = 0;
+          mVCmd = 0.0f;
+          mWCmd = 0.0f;
           mFgStalled = true;
           mFgActiveGoal = false;
           return;
         }
       }
 
-      // The current odometric goal
+// The current odometric goal
       goal.x = mGoal.mX;
       goal.y = mGoal.mY;
-
-      // Were we asked to go backward?
-      if ( mCurrentDir == BACKWARD ) {
-        // Trick the ND by telling it that the robot is pointing the
-        // opposite direction
-        motionData.SR1.orientacion = NORMALIZE_TO_2PI ( motionData.SR1.orientacion + M_PI );
-        // Also reverse the robot's geometry (it may be asymmetric
-        // front-to-back)
-        setDirection ( BACKWARD );
-      }
-      else
-        setDirection ( FORWARD );
 
       cmdVel = IterarND ( goal,            // goal
                           mDistEps,        // goal tolerance
@@ -467,7 +687,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
     } // far away loop
 
     if ( !mVCmd && !mWCmd ) {
-      // ND is done, yet we didn't detect that we reached the goal.  How odd.
+// ND is done, yet we didn't detect that we reached the goal.  How odd.
       mVCmd = 0.0f;
       mWCmd = 0.0f;
       mFgStalled = true;
@@ -477,24 +697,16 @@ void CNd::update ( float timestamp, CPose2d robotPose,
     }
     else {
       mVCmd = threshold ( mVCmd, mVMin, mVMax );
-
-      if ( !mVCmd )
-        mWCmd = threshold ( mWCmd, mWMin, mWMax );
-      // Were we asked to go backward?
-      if ( mCurrentDir < 0 ) {
-        // reverse the commanded x velocity
-        mVCmd = -mVCmd;
-      }
-    } // if (!mVCmd && !mWCmd)
-  }
+    }
+  } // if (!mVCmd && !mWCmd)
 }
 
 //-----------------------------------------------------------------------------
 float CNd::angleDiff ( float a, float b )
 {
   float d1, d2;
-  a = NORMALIZE_TO_2PI ( a );
-  b = NORMALIZE_TO_2PI ( b );
+  a = normalizeAngle ( a );
+  b = normalizeAngle ( b );
   d1 = a - b;
   d2 = 2 * M_PI - fabs ( d1 );
 
@@ -510,43 +722,19 @@ float CNd::angleDiff ( float a, float b )
 
 }
 //-----------------------------------------------------------------------------
-void CNd::setDirection ( tDirection dir )
-{
-  if ( dir == mCurrentDir )
-    return;
-
-  if ( dir == FORWARD ) {
-    // Distance to the front
-    mNDparam.front = mFrontDim + mSafetyDist;
-
-    // Distance to the back
-    mNDparam.back = mBackDim + mSafetyDist;
-    InicializarND ( &mNDparam );
-  }
-  else {
-    // Distance to the front
-    mNDparam.front = mBackDim + mSafetyDist;
-    // Distance to the back
-    mNDparam.back = mFrontDim + mSafetyDist;
-    InicializarND ( &mNDparam );
-  }
-
-  mCurrentDir = dir;
-}
-//-----------------------------------------------------------------------------
 float CNd::threshold ( float v, float vMin, float vMax )
 {
   if ( isAboutZero ( v ) )
     return ( v );
   else
     if ( v > 0.0 ) {
-      v = MIN ( v, vMax );
-      v = MAX ( v, vMin );
+      v = min ( v, vMax );
+      v = max ( v, vMin );
       return ( v );
     }
     else {
-      v = MAX ( v, -vMax );
-      v = MIN ( v, -vMin );
+      v = max ( v, -vMax );
+      v = min ( v, -vMin );
       return ( v );
     }
 }

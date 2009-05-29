@@ -43,9 +43,15 @@
 #include "pose2d.h"
 #include "velocity2d.h"
 #include "rangefinder.h"
+#include "rectangle.h"
+#include <vector>
 
-const int MAX_ND_SENSORS = 3;
 using namespace Rapi;
+
+typedef struct {
+  CRectangle rect;
+  bool fgObstacle;
+} tAvoidBox;
 
 /**
  * Rapi interface to Nearest Distance obstacle avoidance. This is a
@@ -69,6 +75,7 @@ using namespace Rapi;
  * @author Jens Wawerla <jwawerla@sfu.ca>
  * @verion 0.1 - 01/2008
  */
+
 class CNd
 {
     // allow the visualization to see non-public members
@@ -85,7 +92,6 @@ class CNd
     CNd ( float frontDim, float backDim, float sideDim, std::string robotname = "noName" );
     /** Default destructor */
     ~CNd();
-    typedef enum {FORWARD, BACKWARD} tDirection;
     /**
      * Adds a rangefinder to the sensor list
      * @param sensor to be added
@@ -140,7 +146,7 @@ class CNd
      */
     bool hasActiveGoal();
     /**
-     * Checks if the robot is stalmLed
+     * Checks if the robot is stalled
      * @return true if stalled, false otherwise
      */
     bool isStalled();
@@ -169,10 +175,32 @@ class CNd
      * Resets Nd's state variables
      */
     void reset();
-
-    int getNumSectors();
+    /**
+     * Checks if the robot has crossed the path normal
+     * @return true if it crossed the path normal, false otherwise
+     */
+    bool hasCrossedPathNormal() { return mFgCrossedPathNormal; };
+    /** Front box */
+    tAvoidBox mFrontBox;
+    /** Back box */
+    tAvoidBox mBackBox;
+    /** Front left side obstacle detection box */
+    tAvoidBox mFrontLeftBox;
+    /** Front right side obstacle detection box */
+    tAvoidBox mFrontRightBox;
+    /** Back left side obstacle detection box */
+    tAvoidBox mBackLeftBox;
+    /** Back right side obstacle detection box */
+    tAvoidBox mBackRightBox;
+    /** intermedidate ND data, stored here for vis purposes */
+    TInfoND mInfo;
+    typedef enum {NORMAL, ALIGNING, AT_GOAL, STALLED, PRE_STALLED} tState;
+    /** State of FSM */
+    tState mState;
 
   protected:
+
+
     /** Processes information from all registered sensors */
     void processSensors();
     /**
@@ -182,11 +210,7 @@ class CNd
      * @return [rad]
      */
     float angleDiff ( float a, float b );
-    /**
-     * Sets the driving direction
-     * @param dir 1 forward, 0 backwards
-     */
-    void setDirection ( tDirection dir );
+
     /**
      * Threshold a given velocity to {[-vMin, -vMax], 0, [vMin, vMax]}
      * @param vMin minimal velocity
@@ -194,8 +218,22 @@ class CNd
      * @return thresholded velocity
      */
     float threshold ( float v, float vMin, float vMax );
+    /**
+     * Check if we are stalled
+     * @return true if stalled, false otherwise
+     */
+    bool checkStalled();
+    /**
+     * Checks if we have crossed the path normal
+     * sets the mFgCrossedPathNormal if the normal was crossed,
+     * mFgCrossedPathNormal gets reset once  new goal is set
+     */
+    void checkCrossedPathNormal();
 
   private:
+
+    /** Flags if the state of the FSM has changed */
+    bool mFgStateChanged;
     /** Name of robot */
     std::string mRobotName;
     /** Pose of robot */
@@ -209,9 +247,7 @@ class CNd
     /** Angle epsilon, basically a threshold when things are close enough [rad] */
     float mAngleEps;
     /** List of rangefinders to be used */
-    ARangeFinder* mSensorList[MAX_ND_SENSORS];
-    /** Number of registered sensors */
-    int mNumSensors;
+    std::vector<ARangeFinder*> mSensorList;
     /** Parameter set for ND algorithm */
     TParametersND mNDparam;
     /** Maximal translational velocity [m/s] */
@@ -262,8 +298,8 @@ class CNd
      * to not give up [rad]
      */
     float mTranslateStuckAngle;
-    /** Current driving direction 1 forward, 0 backwards */
-    tDirection mCurrentDir;
+    /** Flags if the path normal was crossed */
+    bool mFgCrossedPathNormal;
     /** Flags if we are stalled */
     bool mFgStalled;
     /** Flag if turning in place or not */
@@ -286,9 +322,16 @@ class CNd
     float mBackDim;
     /** Side dimension of robot [m] */
     float mSideDim;
-    /** intermedidate ND data, stored here for vis purposes */
-    TInfoND mInfo;
+    /** Heading [rad] */
+    float mHeading;
+    /** Distance to path normal [m] */
+    float mPathNormalDist;
+    /** Robot radius [m] */
+    float mRobotRadius;
+    /** Flags if the robot radius was penetrated by an obstacle */
+    bool mFgRobotRadiusPenetrated;
 
 };
+
 
 #endif

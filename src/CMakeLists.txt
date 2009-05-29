@@ -8,9 +8,9 @@ SET( HEADERS
 )
 
 SET( SOURCES 
-	  geometria.cpp
-	  nd.cpp
-	  nd_alg.cpp 
+  geometria.cpp
+  nd.cpp
+  nd_alg.cpp
 )
 
 SET( MYLIBS

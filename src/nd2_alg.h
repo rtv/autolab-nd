@@ -122,9 +122,9 @@ typedef struct {
   TVelocities velocidades;         // Estado actual del robot: velocidades 
                                    // lineal y angular.
   TCoordenadasPolares d[SECTORES]; // Distancia desde el centro del robot al
-                                   // obst�culo m�s pr�ximo en cada sector
+                                   // obst�culo m�s pr�ximo en cada sector (PND?)
   float dr[SECTORES];              // Distancia desde el per�metro del robot al
-                                   // obst�culo m�s pr�ximo en cada sector.
+                                   // obst�culo m�s pr�ximo en cada sector. (RND?)
   TVRegiones regiones;             // S�lo como informaci�n de cara al exterior:
                                    // Lista de todas las regiones encontradas en el
                                    // proceso de selecci�n.

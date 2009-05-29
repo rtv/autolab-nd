@@ -16,7 +16,32 @@ static void DrawCircle ( float x, float y, float z, float radius, float steps )
                  z );
   glEnd();
 }
+//-----------------------------------------------------------------------------
+static void DrawBox( CRectangle& rect )
+{
+  glBegin( GL_LINES );
+  glVertex2f( rect.getLeft(),
+              rect.getBottom() );
+  glVertex2f( rect.getLeft(),
+              rect.getTop() );
 
+  glVertex2f( rect.getLeft(),
+              rect.getTop() );
+  glVertex2f( rect.getRight(),
+              rect.getTop() );
+
+  glVertex2f( rect.getRight(),
+              rect.getTop() );
+  glVertex2f( rect.getRight(),
+              rect.getBottom() );
+
+  glVertex2f( rect.getRight(),
+              rect.getBottom() );
+  glVertex2f( rect.getLeft(),
+              rect.getBottom() );
+  glEnd();
+}
+//-----------------------------------------------------------------------------
 void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
 {
   Stg::Geom geom = mod->GetGeom();
@@ -36,7 +61,7 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
     glVertex2f ( goal.mX, goal.mY );
     glEnd();
     char buf[64];
-    snprintf ( buf, 64, "Goal (%.2f,%.2f)", goal.mX, goal.mY );
+    snprintf ( buf, 64, "%s", nd.mInfo.situacion );
     Stg::Gl::draw_string ( goal.mX + 0.2, goal.mY + 0.2, 0, buf );
     mod->PopColor();
   }
@@ -46,8 +71,8 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
     glPointSize ( 5 );
     mod->PushColor ( 1,0,0,0.8 ); // red
     glBegin ( GL_POINTS );
-    glVertex2f ( nd.mObstacles.punto[i].x,
-                 nd.mObstacles.punto[i].y );
+    glVertex3f ( nd.mObstacles.punto[i].x,
+                 nd.mObstacles.punto[i].y, 0.5 );
     glEnd();
     mod->PopColor();
   }
@@ -65,22 +90,27 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
   mod->PopColor();
 
   // safety distance
-  mod->PushColor ( 0,1,0,1 ); // green
+  mod->PushColor ( 0,1,1,1 ); // green
   DrawCircle ( 0,0,0, nd.mSafetyDist, 20 );
   mod->PopColor();
 
   // sector distances
   glPointSize ( 5 );
-  mod->PushColor ( 1,0,0,0.4 ); // red
+  mod->PushColor ( 1,0,1,0.4 ); // red
   for ( unsigned int i = 0; i < SECTORES; i++ ) {
+    //if ( nd.mInfo.d[i].r < 0 )
     if ( nd.mInfo.d[i].r < 0 )
       continue;
 
     glBegin ( GL_LINES );
 
+    //float dx = nd.mInfo.dr[i] *  cos ( nd.mInfo.d[i].a );
+    //float dy = nd.mInfo.dr[i] *  sin ( nd.mInfo.d[i].a );
     float dx = nd.mInfo.d[i].r *  cos ( nd.mInfo.d[i].a );
     float dy = nd.mInfo.d[i].r *  sin ( nd.mInfo.d[i].a );
 
+    //float dx =  robot.E[i] * cos ( sector2angle ( i ) );
+    //float dy =  robot.E[i] * sin ( sector2angle ( i ) );
     glVertex2f ( 0,0 );
     glVertex2f ( dx, dy );
 
@@ -88,36 +118,85 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
   }
   mod->PopColor();
 
-  // direction indicator
+  // ND Angle [-pi/2, pi/2]
   mod->PushColor ( 0,0,1,0.8 ); // blue
   glLineWidth ( 5.0 );
   glBegin ( GL_LINES );
-  glVertex3f ( 0,0,1.0 );
-  glVertex3f ( 0.3 * nd.mCurrentDir, 0, 1.0 );
+  dx = 1.0 *  cos ( nd.mInfo.angle );
+  dy = 1.0 *  sin ( nd.mInfo.angle );
+  glVertex2f ( 0,0 );
+  glVertex2f ( dx, dy );
   glEnd();
   mod->PopColor();
   glLineWidth ( 1.0 );
 
+  if ( nd.mFrontLeftBox.fgObstacle)
+    mod->PushColor( 1, 0, 0, 0.8 ); // red
+  else
+    mod->PushColor( 0, 1, 0, 0.8 ); // green
+  DrawBox( nd.mFrontLeftBox.rect );
+  mod->PopColor();
+
+  if ( nd.mFrontRightBox.fgObstacle)
+    mod->PushColor( 1, 0, 0, 0.8 ); // red
+  else
+    mod->PushColor( 0, 1, 0, 0.8 ); // green
+  DrawBox( nd.mFrontRightBox.rect );
+  mod->PopColor();
+
+  if ( nd.mBackLeftBox.fgObstacle)
+    mod->PushColor( 1, 0, 0, 0.8 ); // red
+  else
+    mod->PushColor( 0, 1, 0, 0.8 ); // green
+  DrawBox( nd.mBackLeftBox.rect );
+  mod->PopColor();
+
+  if ( nd.mBackRightBox.fgObstacle)
+    mod->PushColor( 1, 0, 0, 0.8 ); // red
+  else
+    mod->PushColor( 0, 1, 0, 0.8 ); // green
+  DrawBox( nd.mBackRightBox.rect );
+  mod->PopColor();
+
+  if ( nd.mBackBox.fgObstacle)
+    mod->PushColor( 1, 0, 0, 0.8 ); // red
+  else
+    mod->PushColor( 0, 1, 0, 0.8 ); // green
+  DrawBox( nd.mBackBox.rect );
+  mod->PopColor();
+
+  if ( nd.mFrontBox.fgObstacle)
+    mod->PushColor( 1, 0, 0, 0.8 ); // red
+  else
+    mod->PushColor( 0, 1, 0, 0.8 ); // green
+  DrawBox( nd.mFrontBox.rect );
+  mod->PopColor();
+
   // regions
-  mod->PushColor ( 1,0,1,0.8 ); // magenta
+  mod->PushColor ( 0,1,0,0.8 ); // green
 
-  printf ( "length: %d\n", nd.mInfo.regiones.longitud );
-
-
+  //printf ( "length: %d\n", nd.mInfo.regiones.longitud );
 
   for ( int i=0; i <nd.mInfo.regiones.longitud; i++ ) {
     TRegion* reg = &nd.mInfo.regiones.vector[i];
 
-    printf ( "principio %d final %d principio_ascendente %d final_ascendente %d descartada %d direction_tipo %d direcction_sector %d direction_angle %.2f\n",
-             reg->principio,
+/*
+    printf ( "principio %d final %d principio_ascendente %d final_ascendente %d descartada %d direction_tipo %d direcction_sector %d direction_angle %.2f\n",           reg->principio,
              reg->final, reg->principio_ascendente, reg->final_ascendente, reg->descartada, reg->direction_tipo, reg->direction_sector, reg->direction_angle );
+*/
+    int i = reg->principio;
+    while ( i != reg->final ) {
 
-    float dx = 1.0 *  cos ( reg->direction_angle );
-    float dy = 1.0 *  sin ( reg->direction_angle );
+      float dx = 1.0 *  cos ( sector2angle(i) );
+      float dy = 1.0 *  sin ( sector2angle(i) );
 
-    glBegin ( GL_LINES );
-    glVertex3f ( 0,0,0.01 );
-    glVertex3f ( dx,dy,0.01 );
-    glEnd();
+      glBegin ( GL_LINES );
+      glVertex3f ( 0,0,0.01 );
+      glVertex3f ( dx,dy,0.01 );
+      glEnd();
+      i ++;
+      if (i >= SECTORES )
+       i = 0;
+    }
   }
 }

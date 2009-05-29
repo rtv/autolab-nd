@@ -29,14 +29,13 @@
  */
 class NdVis : public Stg::Visualizer
 {
- private:
-  CNd& nd;
+  private:
+    CNd& nd;
 
- public:
- NdVis( CNd& nd ) :
-  Stg::Visualizer ( "Nearness Diagram (ND)", "show_nd" ),
-	 nd(nd)
-	 {}
+  public:
+    NdVis ( CNd& nd ) :
+        Stg::Visualizer ( "Nearness Diagram (ND)", "show_nd" ),
+        nd ( nd ) {}
     virtual ~NdVis() {}
     virtual void Visualize ( Stg::Model* mod, Stg::Camera* cam );
 };
