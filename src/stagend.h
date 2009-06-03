@@ -1,6 +1,8 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Richard Vaughan
- *   vaughan@sfu.ca
+ * Project: RAPI                                                           *
+ * Author:  Jens Wawerla (jwawerla@sfu.ca)                                 *
+ * $Id: nd.cpp,v 1.8 2009-04-08 22:40:41 jwawerla Exp $
+ ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -16,28 +18,38 @@
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************
- * $Log: wavefrontmapvis.h,v $
- ***************************************************************************/
+ **************************************************************************/
+#ifndef STAGEND_H
+#define STAGEND_H
 
 #include "nd.h"
-#include "stage.hh"
+#include "ndvis.h"
+#include <stage.hh>
 
 /**
- * A Stage visualizer for autolab-nd
- * @author Richard Vaughan
+ * Extends CNd to add a visualization for Stage
+ *  @author Jens Wawerla
  */
-class NdVis : public Stg::Visualizer
+class CStageNd : public CNd
 {
-  private:
-    CNd* nd;
-
   public:
-    NdVis ( CNd* nd ) :
-        Stg::Visualizer ( "Nearness Diagram (ND)", "show_nd" ),
-        nd ( nd ) {}
-    virtual ~NdVis() {}
-    virtual void Visualize ( Stg::Model* mod, Stg::Camera* cam );
+    /**
+     * Default constructor
+     * @param stgModel stage model to register visualizer with
+     * @param frontDim dimension of robot in front of wheels [m]
+     * @param backDim dimension of robot behind the wheels [m]
+     * @param sideDim dimension to the side of the center of rotation [m]
+     * @param name of robot for status messages
+     */
+    CStageNd ( Stg::Model* stgModel, float frontDim, float backDim, float sideDim,
+               std::string robotName = "noName" );
+    /** Default destructor */
+    virtual ~CStageNd();
+
+  protected:
+    /** Stage visualization for ND */
+    NdVis* mNdVis;
+
 };
 
-
+#endif

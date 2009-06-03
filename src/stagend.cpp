@@ -1,6 +1,8 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Richard Vaughan
- *   vaughan@sfu.ca
+ * Project: RAPI                                                           *
+ * Author:  Jens Wawerla (jwawerla@sfu.ca)                                 *
+ * $Id: nd.cpp,v 1.8 2009-04-08 22:40:41 jwawerla Exp $
+ ***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -16,28 +18,23 @@
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************
- * $Log: wavefrontmapvis.h,v $
- ***************************************************************************/
+ **************************************************************************/
+#include "stagend.h"
 
-#include "nd.h"
-#include "stage.hh"
-
-/**
- * A Stage visualizer for autolab-nd
- * @author Richard Vaughan
- */
-class NdVis : public Stg::Visualizer
+//-----------------------------------------------------------------------------
+CStageNd::CStageNd ( Stg::Model* stgModel, float frontDim, float backDim,
+                     float sideDim, std::string robotName )
+    : CNd ( frontDim, backDim, sideDim, robotName )
 {
-  private:
-    CNd* nd;
 
-  public:
-    NdVis ( CNd* nd ) :
-        Stg::Visualizer ( "Nearness Diagram (ND)", "show_nd" ),
-        nd ( nd ) {}
-    virtual ~NdVis() {}
-    virtual void Visualize ( Stg::Model* mod, Stg::Camera* cam );
-};
+  mNdVis = new NdVis ( this );
+  stgModel->AddVisualizer ( mNdVis, true );
+}
+//-----------------------------------------------------------------------------
+CStageNd::~CStageNd()
+{
+}
+//-----------------------------------------------------------------------------
+
 
 

@@ -53,26 +53,26 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
   Stg::Gl::pose_inverse_shift ( mod->GetGlobalPose() );
 
   // goal point
-  if ( nd.hasActiveGoal() ) {
-    CPose2d goal = nd.getGoal();
+  if ( nd->hasActiveGoal() ) {
+    CPose2d goal = nd->getGoal();
     glPointSize ( 15 );
     mod->PushColor ( 1,0,0,0.8 ); // red
     glBegin ( GL_POINTS );
     glVertex2f ( goal.mX, goal.mY );
     glEnd();
     char buf[64];
-    snprintf ( buf, 64, "%s", nd.mInfo.situacion );
+    snprintf ( buf, 64, "%s", nd->mInfo.situacion );
     Stg::Gl::draw_string ( goal.mX + 0.2, goal.mY + 0.2, 0, buf );
     mod->PopColor();
   }
 
   // obstacle cloud
-  for ( int i = 0; i < nd.mObstacles.longitud; i++ ) {
+  for ( int i = 0; i < nd->mObstacles.longitud; i++ ) {
     glPointSize ( 5 );
     mod->PushColor ( 1,0,0,0.8 ); // red
     glBegin ( GL_POINTS );
-    glVertex3f ( nd.mObstacles.punto[i].x,
-                 nd.mObstacles.punto[i].y, 0.5 );
+    glVertex3f ( nd->mObstacles.punto[i].x,
+                 nd->mObstacles.punto[i].y, 0.5 );
     glEnd();
     mod->PopColor();
   }
@@ -81,8 +81,8 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
 
   // current desired heading angle, in local frame
   mod->PushColor ( 0,0,1,0.8 ); // blue
-  float dx =  1.0 * cos ( nd.mInfo.angle );
-  float dy =  1.0 * sin ( nd.mInfo.angle );
+  float dx =  1.0 * cos ( nd->mInfo.angle );
+  float dy =  1.0 * sin ( nd->mInfo.angle );
   glBegin ( GL_LINES );
   glVertex2f ( 0, 0 );
   glVertex2f ( dx, dy );
@@ -91,23 +91,23 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
 
   // safety distance
   mod->PushColor ( 0,1,1,1 ); // green
-  DrawCircle ( 0,0,0, nd.mSafetyDist, 20 );
+  DrawCircle ( 0,0,0, nd->mSafetyDist, 20 );
   mod->PopColor();
 
   // sector distances
   glPointSize ( 5 );
   mod->PushColor ( 1,0,1,0.4 ); // red
   for ( unsigned int i = 0; i < SECTORES; i++ ) {
-    //if ( nd.mInfo.d[i].r < 0 )
-    if ( nd.mInfo.d[i].r < 0 )
+    //if ( nd->mInfo.d[i].r < 0 )
+    if ( nd->mInfo.d[i].r < 0 )
       continue;
 
     glBegin ( GL_LINES );
 
-    //float dx = nd.mInfo.dr[i] *  cos ( nd.mInfo.d[i].a );
-    //float dy = nd.mInfo.dr[i] *  sin ( nd.mInfo.d[i].a );
-    float dx = nd.mInfo.d[i].r *  cos ( nd.mInfo.d[i].a );
-    float dy = nd.mInfo.d[i].r *  sin ( nd.mInfo.d[i].a );
+    //float dx = nd->mInfo.dr[i] *  cos ( nd->mInfo.d[i].a );
+    //float dy = nd->mInfo.dr[i] *  sin ( nd->mInfo.d[i].a );
+    float dx = nd->mInfo.d[i].r *  cos ( nd->mInfo.d[i].a );
+    float dy = nd->mInfo.d[i].r *  sin ( nd->mInfo.d[i].a );
 
     //float dx =  robot.E[i] * cos ( sector2angle ( i ) );
     //float dy =  robot.E[i] * sin ( sector2angle ( i ) );
@@ -122,63 +122,49 @@ void NdVis::Visualize ( Stg::Model* mod, Stg::Camera* cam )
   mod->PushColor ( 0,0,1,0.8 ); // blue
   glLineWidth ( 5.0 );
   glBegin ( GL_LINES );
-  dx = 1.0 *  cos ( nd.mInfo.angle );
-  dy = 1.0 *  sin ( nd.mInfo.angle );
+  dx = 1.0 *  cos ( nd->mInfo.angle );
+  dy = 1.0 *  sin ( nd->mInfo.angle );
   glVertex2f ( 0,0 );
   glVertex2f ( dx, dy );
   glEnd();
   mod->PopColor();
   glLineWidth ( 1.0 );
 
-  if ( nd.mFrontLeftBox.fgObstacle)
+  if ( nd->mFrontAvoidBox.fgObstacle)
     mod->PushColor( 1, 0, 0, 0.8 ); // red
   else
     mod->PushColor( 0, 1, 0, 0.8 ); // green
-  DrawBox( nd.mFrontLeftBox.rect );
+  DrawBox( nd->mFrontAvoidBox.rect );
   mod->PopColor();
 
-  if ( nd.mFrontRightBox.fgObstacle)
+  if ( nd->mRightAvoidBox.fgObstacle)
     mod->PushColor( 1, 0, 0, 0.8 ); // red
   else
     mod->PushColor( 0, 1, 0, 0.8 ); // green
-  DrawBox( nd.mFrontRightBox.rect );
+  DrawBox( nd->mRightAvoidBox.rect );
   mod->PopColor();
 
-  if ( nd.mBackLeftBox.fgObstacle)
+  if ( nd->mLeftAvoidBox.fgObstacle)
     mod->PushColor( 1, 0, 0, 0.8 ); // red
   else
     mod->PushColor( 0, 1, 0, 0.8 ); // green
-  DrawBox( nd.mBackLeftBox.rect );
+  DrawBox( nd->mLeftAvoidBox.rect );
   mod->PopColor();
 
-  if ( nd.mBackRightBox.fgObstacle)
+  if ( nd->mBackAvoidBox.fgObstacle)
     mod->PushColor( 1, 0, 0, 0.8 ); // red
   else
     mod->PushColor( 0, 1, 0, 0.8 ); // green
-  DrawBox( nd.mBackRightBox.rect );
-  mod->PopColor();
-
-  if ( nd.mBackBox.fgObstacle)
-    mod->PushColor( 1, 0, 0, 0.8 ); // red
-  else
-    mod->PushColor( 0, 1, 0, 0.8 ); // green
-  DrawBox( nd.mBackBox.rect );
-  mod->PopColor();
-
-  if ( nd.mFrontBox.fgObstacle)
-    mod->PushColor( 1, 0, 0, 0.8 ); // red
-  else
-    mod->PushColor( 0, 1, 0, 0.8 ); // green
-  DrawBox( nd.mFrontBox.rect );
+  DrawBox( nd->mBackAvoidBox.rect );
   mod->PopColor();
 
   // regions
   mod->PushColor ( 0,1,0,0.8 ); // green
 
-  //printf ( "length: %d\n", nd.mInfo.regiones.longitud );
+  //printf ( "length: %d\n", nd->mInfo.regiones.longitud );
 
-  for ( int i=0; i <nd.mInfo.regiones.longitud; i++ ) {
-    TRegion* reg = &nd.mInfo.regiones.vector[i];
+  for ( int i=0; i <nd->mInfo.regiones.longitud; i++ ) {
+    TRegion* reg = &nd->mInfo.regiones.vector[i];
 
 /*
     printf ( "principio %d final %d principio_ascendente %d final_ascendente %d descartada %d direction_tipo %d direcction_sector %d direction_angle %.2f\n",           reg->principio,

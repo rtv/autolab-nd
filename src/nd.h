@@ -89,9 +89,9 @@ class CNd
      * @param sideDim dimension to the side of the center of rotation [m]
      * @param name of robot for status messages
      */
-    CNd ( float frontDim, float backDim, float sideDim, std::string robotname = "noName" );
+    CNd ( float frontDim, float backDim, float sideDim, std::string robotName = "noName" );
     /** Default destructor */
-    ~CNd();
+    virtual ~CNd();
     /**
      * Adds a rangefinder to the sensor list
      * @param sensor to be added
@@ -180,18 +180,14 @@ class CNd
      * @return true if it crossed the path normal, false otherwise
      */
     bool hasCrossedPathNormal() { return mFgCrossedPathNormal; };
-    /** Front box */
-    tAvoidBox mFrontBox;
-    /** Back box */
-    tAvoidBox mBackBox;
-    /** Front left side obstacle detection box */
-    tAvoidBox mFrontLeftBox;
-    /** Front right side obstacle detection box */
-    tAvoidBox mFrontRightBox;
-    /** Back left side obstacle detection box */
-    tAvoidBox mBackLeftBox;
-    /** Back right side obstacle detection box */
-    tAvoidBox mBackRightBox;
+    /** Frontside obstacle detection box */
+    tAvoidBox mFrontAvoidBox;
+    /** Back side obstacle detection box */
+    tAvoidBox mBackAvoidBox;
+    /** Left side obstacle detection box */
+    tAvoidBox mLeftAvoidBox;
+    /** Right side obstacle detection box */
+    tAvoidBox mRightAvoidBox;
     /** intermedidate ND data, stored here for vis purposes */
     TInfoND mInfo;
     typedef enum {NORMAL, ALIGNING, AT_GOAL, STALLED, PRE_STALLED} tState;

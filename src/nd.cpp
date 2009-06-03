@@ -97,13 +97,11 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
   mRotateMinError = 0.0;
   mRotateStartTime = 0.0;
 
-  mFrontBox.rect.setCoordinates(0.12, -0.25, 0.4, 0.25);
-  mBackBox.rect.setCoordinates(-0.4, -0.25, -0.12, 0.25);
+  mFrontAvoidBox.rect.setCoordinates(0.12, -0.25, 0.4, 0.25);
+  mBackAvoidBox.rect.setCoordinates(-0.4, -0.25, -0.12, 0.25);
 
-  mFrontLeftBox.rect.setCoordinates ( 0.0, 0.0, 0.4, 0.3 );
-  mFrontRightBox.rect.setCoordinates ( 0.0,  -0.3, 0.4, 0.0 );
-  mBackLeftBox.rect.setCoordinates ( -0.4, -0.0, 0.0, 0.3 );
-  mBackRightBox.rect.setCoordinates ( -0.4, -0.3, 0.0, 0.0 );
+  mLeftAvoidBox.rect.setCoordinates ( -0.41, -0.3, 0.41, 0.0 );
+  mRightAvoidBox.rect.setCoordinates ( -0.41,  0.0, 0.41, 0.3 );
 
   // Fill in the ND's parameter structure
 
@@ -237,12 +235,10 @@ void CNd::processSensors()
   float maxRange;
   CPoint2d point;
 
-  mFrontLeftBox.fgObstacle = false;
-  mFrontRightBox.fgObstacle = false;
-  mBackLeftBox.fgObstacle = false;
-  mBackRightBox.fgObstacle = false;
-  mBackBox.fgObstacle = false;
-  mFrontBox.fgObstacle = false;
+  mFrontAvoidBox.fgObstacle = false;
+  mRightAvoidBox.fgObstacle = false;
+  mLeftAvoidBox.fgObstacle = false;
+  mBackAvoidBox.fgObstacle = false;
 
   // sin and cosin of robots headings
   sinR = sin ( mRobotPose.mYaw );
@@ -290,23 +286,17 @@ void CNd::processSensors()
       point.mX =  rx + cos ( rf->mRelativeBeamPose[i].mYaw ) * range;
       point.mY =  ry + sin ( rf->mRelativeBeamPose[i].mYaw ) * range;
 
-      if ( mFrontBox.rect.isInside ( point ) ) {
-        mFrontBox.fgObstacle = true; // not clear
+      if ( mFrontAvoidBox.rect.isInside ( point ) ) {
+        mFrontAvoidBox.fgObstacle = true; // not clear
       }
-      if ( mBackBox.rect.isInside ( point ) ) {
-        mBackBox.fgObstacle = true; // not clear
+      if ( mRightAvoidBox.rect.isInside ( point ) ) {
+        mRightAvoidBox.fgObstacle = true; // not clear
       }
-      if ( mFrontLeftBox.rect.isInside ( point ) ) {
-        mFrontLeftBox.fgObstacle = true; // not clear
+      if ( mLeftAvoidBox.rect.isInside ( point ) ) {
+        mLeftAvoidBox.fgObstacle = true; // not clear
       }
-      if ( mFrontRightBox.rect.isInside ( point ) ) {
-        mFrontRightBox.fgObstacle = true; // not clear
-      }
-      if ( mBackLeftBox.rect.isInside ( point ) ) {
-        mBackLeftBox.fgObstacle = true; // not clear
-      }
-      if ( mBackRightBox.rect.isInside ( point ) ) {
-        mBackRightBox.fgObstacle = true; // not clear
+      if ( mBackAvoidBox.rect.isInside ( point ) ) {
+        mBackAvoidBox.fgObstacle = true; // not clear
       }
       //}
 
@@ -518,16 +508,23 @@ void CNd::update ( float timestamp, CPose2d robotPose,
   TInfoMovimiento motionData;
   float gDx, gDa;
 
+  // already up to data
+  if ( mCurrentTime == timestamp)
+    return;
+
   // increment time
   mCurrentTime = timestamp;
+
+  processSensors();
 
   // are we waiting for a stall to clear?
   if ( mFgWaiting )
     return;
 
   // do we have a goal?
-  if ( !mFgActiveGoal )
+  if ( !mFgActiveGoal ) {
     return;
+  }
 
   // set robot pose in GLOBAL CS
   motionData.SR1.posicion.x = robotPose.mX;
@@ -540,8 +537,6 @@ void CNd::update ( float timestamp, CPose2d robotPose,
 
 
   mRobotPose = robotPose;
-
-  processSensors();
 
   // are we at the goal?
   gDx = hypot ( mGoal.mX - mRobotPose.mX,
@@ -563,7 +558,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
     // are we close enough in distance?
     if ( ( gDx < mDistEps ) || ( mFgTurningInPlace ) ) {
       PRT_MSG1 ( 9, "%s: Turning in place", mRobotName.c_str() );
-      printf ( "%s %f \n", mRobotName.c_str(), R2D ( gDa ) );
+      //printf ( "%s %f \n", mRobotName.c_str(), R2D ( gDa ) );
 
       if ( not mFgRobotRadiusPenetrated ) {
         mWCmd = mWMax * max ( fabs ( gDa ) / PI, 0.1 ) * sign ( gDa );
@@ -572,39 +567,13 @@ void CNd::update ( float timestamp, CPose2d robotPose,
       else {
         mVCmd = 0.0;
         mWCmd = 0.0;
-        printf ( "%s: cannot turn, obstacle too close\n", mRobotName.c_str() );
+        //printf ( "%s: cannot turn, obstacle too close\n", mRobotName.c_str() );
       }
       // To make the robot turn (safely) to the goal orientation, we'll
       // give it a fake goal that is in the right direction, and just
       // ignore the translational velocity.
       goal.x = mRobotPose.mX + 10.0 * cos ( mGoal.mYaw );
       goal.y = mRobotPose.mY + 10.0 * sin ( mGoal.mYaw );
-
-
-      /*
-                  cmdVel = IterarND ( goal,            // goal
-                                      mDistEps,        // goal tolerance
-                                      &motionData,     // current velocity of the robot
-                                      &mObstacles,     // list of the obstacle points in global cs
-                                      &mInfo );        // ND puts internal data in here
-
-                  if ( !cmdVel ) {
-                    // Emergency stop
-                    mVCmd = 0.0;
-                    mWCmd = 0.0;
-                    mFgStalled = true;
-                    mFgActiveGoal = false;
-                    PRT_MSG1 ( 6, "%s: Emergency stop", mRobotName.c_str() );
-                    return;
-                  }
-                  else {
-                    mFgStalled = false;
-                  }
-
-                  // we are turning in place, so ignore translational speed command
-                  //mVCmd = 0.0f;
-                  //mWCmd = cmdVel->w;
-      */
 
       if ( not mFgTurningInPlace ) {
         // first time; cache the time and current heading error

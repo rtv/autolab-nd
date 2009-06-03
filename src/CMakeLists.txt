@@ -7,7 +7,7 @@ SET( HEADERS
   geometria.h
 )
 
-SET( SOURCES 
+SET( SOURCES
   geometria.cpp
   nd.cpp
   nd_alg.cpp
@@ -21,8 +21,8 @@ SET( MYLIBS
 # if Stage is present, add code for visualizing ND in Stage
 if( STAGE_FOUND )
   MESSAGE( ${INDENT} "Building Stage visualization" )
-  SET( HEADERS ${HEADERS} ndvis.h )
-  SET( SOURCES ${SOURCES} ndvis.cpp )	 
+  SET( HEADERS ${HEADERS} ndvis.h stagend.h )
+  SET( SOURCES ${SOURCES} ndvis.cpp stagend.cpp )
   SET( MYLIBS ${MYLIBS} ${STAGE_LIBRARIES} ${OPENGL_LIBRARY} )
   INCLUDE_DIRECTORIES( ${STAGE_INCLUDE_DIRS} )
   LINK_DIRECTORIES( ${STAGE_LIBRARY_DIRS} )
