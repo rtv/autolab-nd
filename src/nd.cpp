@@ -259,7 +259,6 @@ void CNd::processSensors()
     for ( unsigned int i = 0; i < rf->getNumSamples(); i++ ) {
 
       range = rf->mRangeData[i].range;
-      //if ( range < maxRange ) {
 
       if ( range < mRobotRadius )
         mFgRobotRadiusPenetrated = true;
@@ -298,7 +297,6 @@ void CNd::processSensors()
       if ( mBackAvoidBox.rect.isInside ( point ) ) {
         mBackAvoidBox.fgObstacle = true; // not clear
       }
-      //}
 
       if ( mReadingIndex >= MAX_POINTS_SCENARIO ) {
         mReadingIndex = 0;
@@ -514,6 +512,7 @@ void CNd::update ( float timestamp, CPose2d robotPose,
 
   // increment time
   mCurrentTime = timestamp;
+  mRobotPose = robotPose;
 
   processSensors();
 
@@ -527,16 +526,13 @@ void CNd::update ( float timestamp, CPose2d robotPose,
   }
 
   // set robot pose in GLOBAL CS
-  motionData.SR1.posicion.x = robotPose.mX;
-  motionData.SR1.posicion.y = robotPose.mY;
-  motionData.SR1.orientacion = robotPose.mYaw;
+  motionData.SR1.posicion.x = mRobotPose.mX;
+  motionData.SR1.posicion.y = mRobotPose.mY;
+  motionData.SR1.orientacion = mRobotPose.mYaw;
   // set velocity
   motionData.velocidades.v = robotVelocity.mXDot;
   motionData.velocidades.w = robotVelocity.mYawDot;
   motionData.velocidades.v_theta = 0.0f;
-
-
-  mRobotPose = robotPose;
 
   // are we at the goal?
   gDx = hypot ( mGoal.mX - mRobotPose.mX,
