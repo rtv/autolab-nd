@@ -1,6 +1,9 @@
 Nearness Diagram local obstacle avoidance module
 [Autolab Robot Parts http://autonomy.cs.sfu.ca]
+
 Copyright 2009 Jens Wawerla, Richard Vaughan
+
 Includes ND implementation by Javier Minguez and Javier Osuna 2003 
+
 Distributed under the terms of the GNU General Public License v2.
 
