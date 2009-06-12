@@ -1,0 +1,7 @@
+Documentation is built by Doxygen.  If you have Doxygen
+installed and want to build the documentation yourself:
+  $ make doc
+To install the docs in $prefix/share/doc/autolab-nd:
+  $ make doc-install
+To remove the local copy of documentation:
+  $ make clean
