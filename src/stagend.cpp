@@ -28,7 +28,7 @@ CStageNd::CStageNd ( Stg::Model* stgModel, float frontDim, float backDim,
 {
 
   mNdVis = new NdVis ( this );
-  stgModel->AddVisualizer ( mNdVis, true );
+  stgModel->AddVisualizer ( mNdVis, false );
 }
 //-----------------------------------------------------------------------------
 CStageNd::~CStageNd()
