@@ -1458,7 +1458,7 @@ TVelocities *IterarND ( TCoordenadas objetivo,
   SeleccionarRegion ( nd );
 
   if ( nd->region < 0 ) {
-    PRT_ERR0 ( "ND: Cannot find region" );
+    //PRT_ERR0 ( "ND: Cannot find region" );
     return NULL;
   }
 
