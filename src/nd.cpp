@@ -66,6 +66,7 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
   mSideDim = sideDim;
 
   mState = AT_GOAL;
+  mAngularSubSamples = D2R(1.0);
   mSensorList.clear();
   mReadingIndex = 0;
   mFgReadingBufferInitialized = false;
@@ -225,6 +226,11 @@ void CNd::setGoal ( CPose2d goal )
   mState = NORMAL;
 }
 //-----------------------------------------------------------------------------
+void CNd::setConeSubSampling( float samplesPerRad )
+{
+  mAngularSubSamples = samplesPerRad;
+}
+//-----------------------------------------------------------------------------
 void CNd::processSensors()
 {
   ARangeFinder* rf;
@@ -233,6 +239,9 @@ void CNd::processSensors()
   float globalSensorX, globalSensorY, globalSensorAngle;
   float cosR, sinR;
   float maxRange;
+  int subsamples;
+  float angle;
+  float beamConeAngle;
   CPoint2d point;
 
   mFrontAvoidBox.fgObstacle = false;
@@ -255,6 +264,7 @@ void CNd::processSensors()
 
   for ( unsigned int s = 0; s < mSensorList.size(); s++ ) {
     rf = mSensorList[s];
+    beamConeAngle = rf->getBeamConeAngle();
     maxRange = rf->getMaxRange();
     for ( unsigned int i = 0; i < rf->getNumSamples(); i++ ) {
 
@@ -272,12 +282,29 @@ void CNd::processSensors()
       globalSensorAngle = normalizeAngle ( mRobotPose.mYaw +
                                             rf->mRelativeBeamPose[i].mYaw );
 
-      // convert to cartesian coords, in global coordinate system
-      mObstacles.punto[mReadingIndex].x = globalSensorX + range *
+      // is this a laser type device with practically no beam cone ?
+      if (beamConeAngle == 0) {
+        // convert to cartesian coords, in global coordinate system
+        mObstacles.punto[mReadingIndex].x = globalSensorX + range *
                                           cos ( globalSensorAngle );
-      mObstacles.punto[mReadingIndex].y = globalSensorY + range *
+        mObstacles.punto[mReadingIndex].y = globalSensorY + range *
                                           sin ( globalSensorAngle );
-      mReadingIndex ++;
+        mReadingIndex ++;
+      }
+      // or a device with a beam cone like a sonar or ir sensor
+      else {
+        subsamples = ceil(0.5 * beamConeAngle / mAngularSubSamples);
+        for (int n = -subsamples; n < subsamples; n++) {
+          // convert to cartesian coords, in global coordinate system
+          angle = normalizeAngle(globalSensorAngle + n * mAngularSubSamples );
+          mObstacles.punto[mReadingIndex].x = globalSensorX + range *
+                                            cos ( angle );
+          mObstacles.punto[mReadingIndex].y = globalSensorY + range *
+                                            sin ( angle );
+          mReadingIndex ++;
+        }
+
+      }
 
       //***************************************
       // check boxes for obstacles

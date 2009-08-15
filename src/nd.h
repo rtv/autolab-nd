@@ -172,6 +172,11 @@ class CNd
      */
     void setEpsilonDistance ( float dist );
     /**
+     * Sets by how many sub samples cone based range finders are subsampled
+     * @param samplesPerRad number of sub samples per rad cone angle [1/rad]
+     */
+    void setConeSubSampling( float samplesPerRad );
+    /**
      * Resets Nd's state variables
      */
     void reset();
@@ -326,6 +331,8 @@ class CNd
     float mRobotRadius;
     /** Flags if the robot radius was penetrated by an obstacle */
     bool mFgRobotRadiusPenetrated;
+    /** Number of sub sample points per rad, for sub sampling cone based range sensors [#/rad] */
+    float mAngularSubSamples;
 
 };
 

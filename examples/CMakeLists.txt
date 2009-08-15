@@ -16,6 +16,8 @@ LINK_DIRECTORIES(
 # must come AFTER the LINK_DIRECTORIES() command. sigh...
 ADD_LIBRARY( wander_nd MODULE wander_nd.cpp )
 
+ADD_LIBRARY( wander_sonar_nd MODULE wander_sonar_nd.cpp )
+
 # message( "*&^&^%" rapi stage lib dirs: ${RAPISTAGE_LIBRARY_DIRS} )
 
 TARGET_LINK_LIBRARIES( wander_nd
@@ -23,6 +25,13 @@ TARGET_LINK_LIBRARIES( wander_nd
   ${RAPISTAGE_LIBRARIES}
   ${OPENGL_LIBRARY}
 )
+
+TARGET_LINK_LIBRARIES( wander_sonar_nd
+  autolab-nd
+  ${RAPISTAGE_LIBRARIES}
+  ${OPENGL_LIBRARY}
+)
+
 
 INSTALL(TARGETS wander_nd
     RUNTIME DESTINATION bin
@@ -32,3 +41,4 @@ INSTALL(TARGETS wander_nd
 # delete the "lib" prefix from the plugin libraries
 SET_TARGET_PROPERTIES( wander_nd PROPERTIES PREFIX "" )
 
+SET_TARGET_PROPERTIES( wander_sonar_nd PROPERTIES PREFIX "" )
