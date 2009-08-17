@@ -332,7 +332,7 @@ class CNd
     /** Flags if the robot radius was penetrated by an obstacle */
     bool mFgRobotRadiusPenetrated;
     /** Number of sub sample points per rad, for sub sampling cone based range sensors [#/rad] */
-    float mAngularSubSamples;
+    float mSubSamplesPerRad;
 
 };
 
