@@ -38,7 +38,16 @@ INSTALL(TARGETS wander_nd
     LIBRARY DESTINATION lib
 )
 
-# delete the "lib" prefix from the plugin libraries
-SET_TARGET_PROPERTIES( wander_nd PROPERTIES PREFIX "" )
+STRING(REGEX REPLACE ";" " " STAGE_LDFLAGS_FULL "${STAGE_LDFLAGS}")
+MESSAGE(STAGE_LDFLAGS_FULL " ${STAGE_LDFLAGS_FULL}" )
 
-SET_TARGET_PROPERTIES( wander_sonar_nd PROPERTIES PREFIX "" )
+# delete the "lib" prefix from the plugin libraries
+SET_TARGET_PROPERTIES( wander_nd PROPERTIES 
+							  PREFIX "" 
+							  LINK_FLAGS "${STAGE_LD_FLAGS_FULL}"
+)
+
+SET_TARGET_PROPERTIES( wander_sonar_nd PROPERTIES 
+							  PREFIX "" 
+							  LINK_FLAGS "${STAGE_LD_FLAGS_FULL}"
+)

@@ -33,13 +33,11 @@ LINK_DIRECTORIES( ${RAPI_LIBRARY_DIRS} )
 PKG_SEARCH_MODULE( STAGE stage  )
 IF( STAGE_FOUND )
   MESSAGE( "Found Stage" )
-  FIND_PACKAGE( OpenGL REQUIRED )
   ADD_SUBDIRECTORY(examples) # right now the example targets Stage
 ENDIF( STAGE_FOUND )
 
 # check for Stage before descending
 ADD_SUBDIRECTORY(src)
-
 
 # Create and install the pkgconfig file from the .in template
 SET( PKGFILE ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.pc )
