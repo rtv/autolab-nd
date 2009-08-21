@@ -261,12 +261,15 @@ void CNd::processSensors()
     mObstacles.longitud = 0;
     return;
   }
-
-  for ( unsigned int s = 0; s < mSensorList.size(); s++ ) {
+  
+  const unsigned int sensor_count = mSensorList.size();
+  for ( unsigned int s = 0; s < sensor_count; s++ ) {
     rf = mSensorList[s];
     beamConeAngle = rf->getBeamConeAngle();
     maxRange = rf->getMaxRange();
-    for ( unsigned int i = 0; i < rf->getNumSamples(); i++ ) {
+
+	 const unsigned int sample_count = rf->getNumSamples();
+    for ( unsigned int i = 0; i < sample_count; i++ ) {
 
       range = rf->mRangeData[i].range;
 
