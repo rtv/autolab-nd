@@ -108,6 +108,20 @@ class CNd
      */
     void setAvoidDistance ( float dist );
     /**
+     * Set the translational and rotational velocity limits 
+     * @param vMin [m/s]
+     * @param vMax [m/s]
+     * @param wMin [rad/s]
+     * @param wMax [rad/s]
+     */
+    void setVelocityLimits ( float vMin, float vMax, float wMin, float wMax );
+    /**
+     * Set the translational and rotational acceleration upper limits 
+     * @param vDotMax [m/s^2]
+     * @param wDotMax [rad/s^2]
+     */
+    void setAccelerationLimits ( float vDotMax, float wDotMax );
+    /**
      * Gets the recommended velocity
      * @return [m/s] [rad/s]
      */

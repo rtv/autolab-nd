@@ -176,6 +176,20 @@ void CNd::setAvoidDistance ( float dist )
   InicializarND ( &mNDparam );
 }
 //-----------------------------------------------------------------------------
+void CNd::setVelocityLimits ( float vMin, float vMax, float wMin, float wMax)
+{
+	mVMin = vMin;
+	mVMax = vMax;
+	mWMin = wMin;
+	mWMax = wMax;
+}
+//-----------------------------------------------------------------------------
+void CNd::setAccelerationLimits ( float vDotMax, float wDotMax)
+{
+	mVDotMax = vDotMax;
+	mWDotMax = wDotMax;
+}
+//-----------------------------------------------------------------------------
 void CNd::reset()
 {
   mFgWaiting = false;
