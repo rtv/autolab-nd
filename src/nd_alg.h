@@ -143,12 +143,9 @@ typedef struct {
 // This number depends on the maximum number of obstacle points that
 // you want to give to the ND
 
-#define MAX_POINTS_SCENARIO 1440
-//#define MAX_POINTS_SCENARIO 10000
-
 typedef struct {
   int longitud;
-  TCoordenadas punto[MAX_POINTS_SCENARIO];
+  TCoordenadas * punto;
 } TInfoEntorno;
 
 // **************************************

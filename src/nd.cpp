@@ -58,12 +58,14 @@
 
 
 //-----------------------------------------------------------------------------
-CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
+CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName,
+           int numPoints )
 {
   mRobotName = robotName;
   mFrontDim = frontDim;
   mBackDim = backDim;
   mSideDim = sideDim;
+  mNumPoints = numPoints;
 
   mState = AT_GOAL;
   mSubSamplesPerRad =  2 / D2R(1.0);
@@ -97,6 +99,7 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
   mCurrentTime = 0.0;
   mRotateMinError = 0.0;
   mRotateStartTime = 0.0;
+  mObstacles.punto = new TCoordenadas[numPoints];
 
   mFrontAvoidBox.rect.setCoordinates(0.12, -0.25, 0.4, 0.25);
   mBackAvoidBox.rect.setCoordinates(-0.4, -0.25, -0.12, 0.25);
@@ -145,6 +148,8 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName )
 //-----------------------------------------------------------------------------
 CNd::~CNd()
 {
+  if( mObstacles.punto )
+    delete [] mObstacles.punto;
 }
 //-----------------------------------------------------------------------------
 CVelocity2d CNd::getRecommendedVelocity()
@@ -268,7 +273,7 @@ void CNd::processSensors()
   cosR = cos ( mRobotPose.mYaw );
 
   mFgRobotRadiusPenetrated = false;
-  mReadingIndex = 0;
+  //mReadingIndex = 0;
 
   if ( mSensorList.empty() ) {
     PRT_ERR1 ( "%s: No range finders available", mRobotName.c_str() );
@@ -300,13 +305,18 @@ void CNd::processSensors()
                                             rf->mRelativeBeamPose[i].mYaw );
 
       // is this a laser type device with practically no beam cone ?
-      if (beamConeAngle == 0) {
+      if ( beamConeAngle == 0 || mSubSamplesPerRad == 0 ) {
         // convert to cartesian coords, in global coordinate system
         mObstacles.punto[mReadingIndex].x = globalSensorX + range *
                                           cos ( globalSensorAngle );
         mObstacles.punto[mReadingIndex].y = globalSensorY + range *
                                           sin ( globalSensorAngle );
         mReadingIndex ++;
+		if (mReadingIndex >= mNumPoints ) {
+    	    mReadingIndex = 0;
+    		mFgReadingBufferInitialized = true;
+    	}
+
       }
       // or a device with a beam cone like a sonar or ir sensor
       else {
@@ -319,6 +329,10 @@ void CNd::processSensors()
           mObstacles.punto[mReadingIndex].y = globalSensorY + range *
                                             sin ( angle );
           mReadingIndex ++;
+		  if (mReadingIndex >= mNumPoints ) {
+		    mReadingIndex = 0;
+			mFgReadingBufferInitialized = true;
+		  }
         }
 
       }
@@ -341,14 +355,9 @@ void CNd::processSensors()
       if ( mBackAvoidBox.rect.isInside ( point ) ) {
         mBackAvoidBox.fgObstacle = true; // not clear
       }
-
-      if ( mReadingIndex >= MAX_POINTS_SCENARIO ) {
-        mReadingIndex = 0;
-        mFgReadingBufferInitialized = true;
-      }
     }
     if ( mFgReadingBufferInitialized )
-      mObstacles.longitud = MAX_POINTS_SCENARIO;
+      mObstacles.longitud = mNumPoints; 
     else
       mObstacles.longitud = mReadingIndex;
   }

@@ -88,8 +88,10 @@ class CNd
      * @param backDim dimension of robot behind the wheels [m]
      * @param sideDim dimension to the side of the center of rotation [m]
      * @param name of robot for status messages
+     * @param number of obstacle points to use
      */
-    CNd ( float frontDim, float backDim, float sideDim, std::string robotName = "noName" );
+    CNd ( float frontDim, float backDim, float sideDim,
+          std::string robotName = "noName", int numPoints = 100 );
     /** Default destructor */
     virtual ~CNd();
     /**
@@ -186,7 +188,8 @@ class CNd
      */
     void setEpsilonDistance ( float dist );
     /**
-     * Sets by how many sub samples cone based range finders are subsampled
+     * Sets by how many sub samples cone based range finders are subsampled.
+     * If this value is zero, subsampling is disabled.
      * @param samplesPerRad number of sub samples per rad cone angle [1/rad]
      */
     void setConeSubSampling( float samplesPerRad );
@@ -347,7 +350,8 @@ class CNd
     bool mFgRobotRadiusPenetrated;
     /** Number of sub sample points per rad, for sub sampling cone based range sensors [#/rad] */
     float mSubSamplesPerRad;
-
+    /** Number of points to use in the ND algorithm */
+    unsigned int mNumPoints;
 };
 
 
