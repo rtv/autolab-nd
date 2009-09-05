@@ -91,7 +91,7 @@ class CNd
      * @param number of obstacle points to use
      */
     CNd ( float frontDim, float backDim, float sideDim,
-          std::string robotName = "noName", int numPoints = 100 );
+          std::string robotName = "noName", unsigned int maxPoints = 100 );
     /** Default destructor */
     virtual ~CNd();
     /**
@@ -350,8 +350,8 @@ class CNd
     bool mFgRobotRadiusPenetrated;
     /** Number of sub sample points per rad, for sub sampling cone based range sensors [#/rad] */
     float mSubSamplesPerRad;
-    /** Number of points to use in the ND algorithm */
-    unsigned int mNumPoints;
+    /** Maximum number of points to use in the ND algorithm */
+    unsigned int mMaxPoints;
 };
 
 

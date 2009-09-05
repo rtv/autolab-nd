@@ -59,13 +59,13 @@
 
 //-----------------------------------------------------------------------------
 CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName,
-           int numPoints )
+           unsigned int maxPoints )
 {
   mRobotName = robotName;
   mFrontDim = frontDim;
   mBackDim = backDim;
   mSideDim = sideDim;
-  mNumPoints = numPoints;
+  mMaxPoints = maxPoints;
 
   mState = AT_GOAL;
   mSubSamplesPerRad =  2 / D2R(1.0);
@@ -99,7 +99,7 @@ CNd::CNd ( float frontDim, float backDim, float sideDim, std::string robotName,
   mCurrentTime = 0.0;
   mRotateMinError = 0.0;
   mRotateStartTime = 0.0;
-  mObstacles.punto = new TCoordenadas[numPoints];
+  mObstacles.punto = new TCoordenadas[mMaxPoints];
 
   mFrontAvoidBox.rect.setCoordinates(0.12, -0.25, 0.4, 0.25);
   mBackAvoidBox.rect.setCoordinates(-0.4, -0.25, -0.12, 0.25);
@@ -312,7 +312,7 @@ void CNd::processSensors()
         mObstacles.punto[mReadingIndex].y = globalSensorY + range *
                                           sin ( globalSensorAngle );
         mReadingIndex ++;
-		if (mReadingIndex >= mNumPoints ) {
+		if (mReadingIndex >= mMaxPoints ) {
     	    mReadingIndex = 0;
     		mFgReadingBufferInitialized = true;
     	}
@@ -329,7 +329,7 @@ void CNd::processSensors()
           mObstacles.punto[mReadingIndex].y = globalSensorY + range *
                                             sin ( angle );
           mReadingIndex ++;
-		  if (mReadingIndex >= mNumPoints ) {
+		  if (mReadingIndex >= mMaxPoints ) {
 		    mReadingIndex = 0;
 			mFgReadingBufferInitialized = true;
 		  }
@@ -357,7 +357,7 @@ void CNd::processSensors()
       }
     }
     if ( mFgReadingBufferInitialized )
-      mObstacles.longitud = mNumPoints; 
+      mObstacles.longitud = mMaxPoints; 
     else
       mObstacles.longitud = mReadingIndex;
   }
