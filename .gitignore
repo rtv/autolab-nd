@@ -5,3 +5,7 @@ cmake_install.cmake
 CMakeFiles/
 autolab-nd.pc
 /doc/html/
+Doxyfile
+*kdevelop*
+autolab-nd.kdevses
+

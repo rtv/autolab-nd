@@ -5,12 +5,14 @@ SET( HEADERS
   nd_alg.h
   nd2_alg.h
   geometria.h
+  ndplus.h
 )
 
 SET( SOURCES
   geometria.cpp
   nd.cpp
   nd_alg.cpp
+  ndplus.cpp
 )
 
 SET( MYLIBS

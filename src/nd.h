@@ -127,7 +127,7 @@ class CNd
      * Gets the recommended velocity
      * @return [m/s] [rad/s]
      */
-    CVelocity2d getRecommendedVelocity();
+    virtual CVelocity2d getRecommendedVelocity();
     /**
      * Gets the recommended translational velocity
      * @return [m/s]
@@ -144,7 +144,7 @@ class CNd
      * @param pose current pose of robot (global coordinate system)
      * @param velocity current velocity of robot
      */
-    void update ( float timestamp, CPose2d pose, CVelocity2d velocity );
+    virtual void update ( float timestamp, CPose2d pose, CVelocity2d velocity );
     /**
      * Sets the goal for the algorithm in robot local coordinates
      * @param goal to get to in robot local coordinates
