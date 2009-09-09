@@ -22,26 +22,28 @@
 #include "ndplus.h"
 
 //-----------------------------------------------------------------------------
-CNdPlus::CNdPlus( ABinarySensorArray * bumper, ARangeFinder * ranger,
+CNdPlus::CNdPlus( CCBBumper * bumper, CCBIrSensor * ranger,
                   std::string name )
-    : CNd( 0.15, 0.15, 0.15, name, 180 )
+    : CNd( 0.15, 0.15, 0.15, name, 120 )
 {
   mBumper = bumper;
   mRanger = ranger;
   addRangeFinder( ranger );
   setVelocityLimits( -INFINITY, INFINITY, -INFINITY, INFINITY );
-  setAccelerationLimits( 0.3, INFINITY );
+  setAccelerationLimits( 0.5, INFINITY );
   setEpsilonAngle( D2R( 20.0 ) );
   setEpsilonDistance( 0.1 );
-  setAvoidDistance( 0.08 );
+  setAvoidDistance( 0.05 );
   setSafetyDistance( 0.00 );
   setConeSubSampling( 0.0 );
-  mEvadeTime = 5.0;
-  mEvadeSpeed = -0.2;
+  mEvadeTime = 2.0;
+  mEvadeSpeed = -0.25;
   mObstacleTime = 0.0;
   mObstacle = NONE;
   mVRec = 0.0;
   mWRec = 0.0;
+  srand( time( NULL ) );
+  mRearThreshold = 0.25;
 }
 //-----------------------------------------------------------------------------
 CNdPlus::~CNdPlus()
@@ -57,39 +59,45 @@ void CNdPlus::update( float timestamp, CPose2d pose, CVelocity2d velocity )
 {
   float mTimeSinceObstacle = timestamp - mObstacleTime;
   CNd::update( timestamp, pose, velocity );
+  CVelocity2d ndVelo = CNd::getRecommendedVelocity();
+  mVRec = ndVelo.mXDot;
+  mWRec = ndVelo.mYawDot;
+  mRearRange = mRanger->mRangeData[3].range;
 
+  // finish evading obstacle
   if ( mTimeSinceObstacle > mEvadeTime ) {
     mObstacle = NONE;
     mObstacleTime = timestamp;
   }
 
-  if ( isStalled() ) {
-    printf( "ND had stalled\n" );
-    mObstacle = STALL;
+  // check for obstacles
+  if ( isStalled() || mBumper->isAnyTriggered() ) {
     mObstacleTime = timestamp;
-  }
-  else if ( mBumper->mBitData[1] ) {
-    printf( "Right bumper hit\n" );
-    mObstacle = RIGHT;
-    mObstacleTime = timestamp;
-  }
-  else if ( mBumper->mBitData[0] ) {
-    printf( "Left bumper hit\n" );
-    mObstacle = LEFT;
-    mObstacleTime = timestamp;
+    mRandom = 2.0 * ( ((double) rand() ) / RAND_MAX );
+    if ( isStalled() )
+	  mObstacle = STALL;
+    else if ( mBumper->mBitData[1] && mBumper->mBitData[0] )
+	  mObstacle = BOTH;
+	else if ( mBumper->mBitData[1] )
+	  mObstacle = RIGHT;
+	else if ( mBumper->mBitData[0] )
+	  mObstacle = LEFT;
   }
 
+  // take evasionary action
   if ( mObstacle != NONE ) {
     mVRec = mEvadeSpeed;
+	mWRec = mRandom - 1.0;
     switch ( mObstacle ) {
-        case STALL:
-        mWRec = 0.0;
+      case STALL:
         break;
+	  case BOTH:
+		break;
       case RIGHT:
-        mWRec = 1.0;
+        mWRec = -mRandom;
         break;
       case LEFT:
-        mWRec = -1.0;
+        mWRec = mRandom;
         break;
       default:
         mWRec = 0.0;
@@ -97,6 +105,8 @@ void CNdPlus::update( float timestamp, CPose2d pose, CVelocity2d velocity )
         PRT_ERR0( "Unhandled case in obstacle avoidance\n" );
         break;
     }
+    if( mRearRange < mRearThreshold )
+      mVRec = 0.0;
   }
 }
 //-----------------------------------------------------------------------------

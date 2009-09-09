@@ -20,21 +20,17 @@
 #ifndef CNDPLUS_H
 #define CNDPLUS_H
 
+#include <time.h>
+#include <stdlib.h>
 #include <string.h>
 #include "nd.h"
-#include "pose2d.h"
-#include "velocity2d.h"
-#include "binarysensorarray.h"
-#include "rangefinder.h"
-#include "rectangle.h"
-#include <vector>
-#include "printerror.h"
-
+#include "RapiCore"
+#include "RapiChatterbox"
 
 using namespace Rapi;
 
 /** Type definition for obstacle avoidance */
-typedef enum { NONE, STALL, RIGHT, LEFT } tObstacle;
+typedef enum { NONE, STALL, BOTH, RIGHT, LEFT } tObstacle;
 
 /**
  * A Chatterbox-specific extension to ND which does obstacle avoidance.
@@ -47,10 +43,10 @@ class CNdPlus: public CNd
   public:
     /**
      * Default constructor
-     * @param chatterbox bumper
-     * @param chatterbox ir rangefinder
+     * @param bumper on chatterbox
+     * @param ir rangefinder on chatterbox
      */
-    CNdPlus( ABinarySensorArray * bumper, ARangeFinder * ranger,
+    CNdPlus( CCBBumper * bumper, CCBIrSensor * ranger,
              std::string name = "Robot");
     /** Default destructor */
     ~CNdPlus();
@@ -66,9 +62,9 @@ class CNdPlus: public CNd
 
   private:
     /** Chatterbox Bumper */
-    ABinarySensorArray * mBumper;
+    CCBBumper * mBumper;
     /** Chatterbox Range Finder */
-    ARangeFinder * mRanger;
+    CCBIrSensor * mRanger;
     /** Time when we last hit an obstacle */
     double mObstacleTime;
     /** Length of time to avoid obstacles [s] */
@@ -81,6 +77,12 @@ class CNdPlus: public CNd
     double mWRec;
     /** Cause of current obstacle **/
     tObstacle mObstacle;
+	/** A random number to break deadlocks */
+	double mRandom;
+    /** Rear range */
+    double mRearRange;
+    /** Rear threshold: stop backing up if something is closer than this */
+    double mRearThreshold;
 };
 
 
