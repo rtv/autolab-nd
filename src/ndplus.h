@@ -46,7 +46,7 @@ class CNdPlus: public CNd
      * @param bumper on chatterbox
      * @param ir rangefinder on chatterbox
      */
-    CNdPlus( CCBBumper * bumper, CCBIrSensor * ranger,
+    CNdPlus( ABinarySensorArray * bumper, ARangeFinder * ranger,
              std::string name = "Robot");
     /** Default destructor */
     ~CNdPlus();
@@ -62,23 +62,29 @@ class CNdPlus: public CNd
 
   private:
     /** Chatterbox Bumper */
-    CCBBumper * mBumper;
+    ABinarySensorArray * mBumper;
     /** Chatterbox Range Finder */
-    CCBIrSensor * mRanger;
+    ARangeFinder * mRanger;
     /** Time when we last hit an obstacle */
     double mObstacleTime;
-    /** Length of time to avoid obstacles [s] */
-    double mEvadeTime;
-    /** Speed at which to reverse from obstaces */
-    double mEvadeSpeed;
+    /** Length of time to backup from an obstacle [s] */
+    double mBackupTime;
+    /** Speed at which to reverse from obstacles */
+    double mBackupSpeed;
+    /** Length of time to turn away from an obstacle [s] */
+    double mTurnTime;
+    /** Amount of yaw to turn away from an obstacle [rad] */
+    double mTurnThreshold;
+    /** Rate at which to turn away from an obstacle [rad/s] */
+    double mTurnRate;
     /** Recommended Forward Velocity */
     double mVRec;
     /** Recommended Yaw Rate */
     double mWRec;
     /** Cause of current obstacle **/
     tObstacle mObstacle;
-	/** A random number to break deadlocks */
-	double mRandom;
+    /** A random number to break deadlocks */
+    double mRandom;
     /** Rear range */
     double mRearRange;
     /** Rear threshold: stop backing up if something is closer than this */

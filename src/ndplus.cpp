@@ -22,7 +22,7 @@
 #include "ndplus.h"
 
 //-----------------------------------------------------------------------------
-CNdPlus::CNdPlus( CCBBumper * bumper, CCBIrSensor * ranger,
+CNdPlus::CNdPlus( ABinarySensorArray * bumper, ARangeFinder * ranger,
                   std::string name )
     : CNd( 0.15, 0.15, 0.15, name, 120 )
 {
@@ -36,12 +36,16 @@ CNdPlus::CNdPlus( CCBBumper * bumper, CCBIrSensor * ranger,
   setAvoidDistance( 0.05 );
   setSafetyDistance( 0.00 );
   setConeSubSampling( 0.0 );
-  mEvadeTime = 2.0;
-  mEvadeSpeed = -0.25;
   mObstacleTime = 0.0;
   mObstacle = NONE;
   mVRec = 0.0;
   mWRec = 0.0;
+
+  mBackupTime = 0.1;
+  mBackupSpeed = -0.1;
+  mTurnTime = 0.2;
+  mTurnThreshold = D2R( 90.0 );
+  mTurnRate = D2R( 90.0 ) / 1.0 ;
   srand( time( NULL ) );
   mRearThreshold = 0.25;
 }
@@ -62,10 +66,10 @@ void CNdPlus::update( float timestamp, CPose2d pose, CVelocity2d velocity )
   CVelocity2d ndVelo = CNd::getRecommendedVelocity();
   mVRec = ndVelo.mXDot;
   mWRec = ndVelo.mYawDot;
-  mRearRange = mRanger->mRangeData[3].range;
+  //mRearRange = mRanger->mRangeData[3].range;
 
   // finish evading obstacle
-  if ( mTimeSinceObstacle > mEvadeTime ) {
+  if ( mTimeSinceObstacle > (mBackupTime + mTurnTime) ) {
     mObstacle = NONE;
     mObstacleTime = timestamp;
   }
@@ -75,38 +79,27 @@ void CNdPlus::update( float timestamp, CPose2d pose, CVelocity2d velocity )
     mObstacleTime = timestamp;
     mRandom = 2.0 * ( ((double) rand() ) / RAND_MAX );
     if ( isStalled() )
-	  mObstacle = STALL;
+      mObstacle = STALL;
     else if ( mBumper->mBitData[1] && mBumper->mBitData[0] )
-	  mObstacle = BOTH;
-	else if ( mBumper->mBitData[1] )
-	  mObstacle = RIGHT;
-	else if ( mBumper->mBitData[0] )
-	  mObstacle = LEFT;
+      mObstacle = BOTH;
+    else if ( mBumper->mBitData[1] )
+      mObstacle = RIGHT;
+    else if ( mBumper->mBitData[0] )
+      mObstacle = LEFT;
   }
 
-  // take evasionary action
+  // take evasionary action: backup then turn away
   if ( mObstacle != NONE ) {
-    mVRec = mEvadeSpeed;
-	mWRec = mRandom - 1.0;
-    switch ( mObstacle ) {
-      case STALL:
-        break;
-	  case BOTH:
-		break;
-      case RIGHT:
-        mWRec = -mRandom;
-        break;
-      case LEFT:
-        mWRec = mRandom;
-        break;
-      default:
-        mWRec = 0.0;
-        mVRec = 0.0;
-        PRT_ERR0( "Unhandled case in obstacle avoidance\n" );
-        break;
+    if( mTimeSinceObstacle < mBackupTime ) {
+      mVRec = mBackupSpeed;
+      mWRec = 0.0;
     }
-    if( mRearRange < mRearThreshold )
+    else {
       mVRec = 0.0;
+      mWRec = ( mObstacle == RIGHT ) ? -mTurnRate : mTurnRate;
+    }
+    //if( mRearRange < mRearThreshold )
+    //  mVRec = 0.0;
   }
 }
 //-----------------------------------------------------------------------------
