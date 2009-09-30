@@ -25,7 +25,6 @@
 #include <string.h>
 #include "nd.h"
 #include "RapiCore"
-#include "RapiChatterbox"
 
 using namespace Rapi;
 
@@ -33,18 +32,19 @@ using namespace Rapi;
 typedef enum { NONE, STALL, BOTH, RIGHT, LEFT } tObstacle;
 
 /**
- * A Chatterbox-specific extension to ND which does obstacle avoidance.
- * Firstly, this supplements ND with information from the bumper.  Secondly,
- * it initializes ND with reasonable parameters for the chatterbox IR
- * rangefinder.
+ * An extension to ND which does obstacle avoidance using information from
+ * both a rangefinder and a bumper.
+ * This extension is currently Chatterbox-specific: it expects a particular
+ * bumper configuration and initializes ND with parameters tuned for the
+ * the Chatterbox IR range finders.
  */
 class CNdPlus: public CNd
 {
   public:
     /**
      * Default constructor
-     * @param bumper on chatterbox
-     * @param ir rangefinder on chatterbox
+     * @param bumper 
+     * @param rangefinder
      */
     CNdPlus( ABinarySensorArray * bumper, ARangeFinder * ranger,
              std::string name = "Robot");
@@ -61,9 +61,9 @@ class CNdPlus: public CNd
     void update( float timestamp, CPose2d pose, CVelocity2d velocity );
 
   private:
-    /** Chatterbox Bumper */
+    /** Bumper */
     ABinarySensorArray * mBumper;
-    /** Chatterbox Range Finder */
+    /** Rangefinder */
     ARangeFinder * mRanger;
     /** Time when we last hit an obstacle */
     double mObstacleTime;

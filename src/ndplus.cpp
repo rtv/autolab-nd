@@ -88,7 +88,7 @@ void CNdPlus::update( float timestamp, CPose2d pose, CVelocity2d velocity )
       mObstacle = LEFT;
   }
 
-  // take evasionary action: backup then turn away
+  // take evasive action: backup then turn away
   if ( mObstacle != NONE ) {
     if( mTimeSinceObstacle < mBackupTime ) {
       mVRec = mBackupSpeed;
