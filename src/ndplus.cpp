@@ -23,8 +23,8 @@
 
 //-----------------------------------------------------------------------------
 CNdPlus::CNdPlus( ABinarySensorArray * bumper, ARangeFinder * ranger,
-                  std::string name )
-    : CNd( 0.15, 0.15, 0.15, name, 120 )
+                  std::string name, unsigned int maxPoints )
+    : CNd( 0.15, 0.15, 0.15, name, maxPoints )
 {
   mBumper = bumper;
   mRanger = ranger;

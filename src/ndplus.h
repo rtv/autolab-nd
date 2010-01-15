@@ -47,7 +47,7 @@ class CNdPlus: public CNd
      * @param rangefinder
      */
     CNdPlus( ABinarySensorArray * bumper, ARangeFinder * ranger,
-             std::string name = "Robot");
+             std::string name = "Robot", unsigned int maxPoints = 120 );
     /** Default destructor */
     ~CNdPlus();
     /** Get Recommended Velocity */
