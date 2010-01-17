@@ -77,6 +77,8 @@ void CNdPlus::update( float timestamp, CPose2d pose, CVelocity2d velocity )
   // check for obstacles
   if ( isStalled() || mBumper->isAnyTriggered() ) {
     mObstacleTime = timestamp;
+    // TODO: check this line (I think we need it on first contact with obstacle
+    mTimeSinceObstacle = timestamp - mObstacleTime;
     mRandom = 2.0 * ( ((double) rand() ) / RAND_MAX );
     if ( isStalled() )
       mObstacle = STALL;
