@@ -29,12 +29,12 @@ CNdPlus::CNdPlus( ABinarySensorArray * bumper, ARangeFinder * ranger,
   mBumper = bumper;
   mRanger = ranger;
   addRangeFinder( ranger );
-  setVelocityLimits( -INFINITY, INFINITY, -INFINITY, INFINITY );
-  setAccelerationLimits( 0.5, INFINITY );
-  setEpsilonAngle( D2R( 20.0 ) );
-  setEpsilonDistance( 0.1 );
-  setAvoidDistance( 0.05 );
-  setSafetyDistance( 0.00 );
+  setVelocityLimits( 0.0, INFINITY, 0.0, INFINITY );
+  setAccelerationLimits( 0.0, INFINITY );
+  setEpsilonAngle( D2R( 50.0 ) );
+  setEpsilonDistance( 0.2 );
+  setAvoidDistance( 0.15 );
+  setSafetyDistance( 0.05 );
   setConeSubSampling( 0.0 );
   mObstacleTime = 0.0;
   mObstacle = NONE;
@@ -66,18 +66,18 @@ void CNdPlus::update( float timestamp, CPose2d pose, CVelocity2d velocity )
   CVelocity2d ndVelo = CNd::getRecommendedVelocity();
   mVRec = ndVelo.mXDot;
   mWRec = ndVelo.mYawDot;
-  //mRearRange = mRanger->mRangeData[3].range;
+  mRearRange = mRanger->mRangeData[3].range;
 
   // finish evading obstacle
   if ( mTimeSinceObstacle > (mBackupTime + mTurnTime) ) {
     mObstacle = NONE;
     mObstacleTime = timestamp;
+    mTimeSinceObstacle = timestamp - mObstacleTime;
   }
 
   // check for obstacles
   if ( isStalled() || mBumper->isAnyTriggered() ) {
     mObstacleTime = timestamp;
-    // TODO: check this line (I think we need it on first contact with obstacle
     mTimeSinceObstacle = timestamp - mObstacleTime;
     mRandom = 2.0 * ( ((double) rand() ) / RAND_MAX );
     if ( isStalled() )
@@ -100,8 +100,8 @@ void CNdPlus::update( float timestamp, CPose2d pose, CVelocity2d velocity )
       mVRec = 0.0;
       mWRec = ( mObstacle == RIGHT ) ? -mTurnRate : mTurnRate;
     }
-    //if( mRearRange < mRearThreshold )
-    //  mVRec = 0.0;
+    if( mRearRange < mRearThreshold )
+      mVRec = 0.0;
   }
 }
 //-----------------------------------------------------------------------------
