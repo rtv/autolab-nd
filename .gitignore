@@ -11,3 +11,5 @@ autolab-nd.kdevses
 *~
 Build/
 install_manifest.txt
+.cproject
+.project
