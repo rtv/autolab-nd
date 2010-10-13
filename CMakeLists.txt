@@ -42,11 +42,12 @@ LINK_DIRECTORIES( ${RAPI_LIBRARY_DIRS} ${RAPI-CHATTERBOX_LIBRARY_DIRS} )
 
 
 # optional Stage stuff
-PKG_SEARCH_MODULE( STAGE stage  )
-IF( STAGE_FOUND )
+PKG_SEARCH_MODULE( STAGE stage )
+PKG_SEARCH_MODULE( RAPI_STAGE autolab-rapi-stage )
+IF( STAGE_FOUND AND RAPI_STAGE_FOUND )
   MESSAGE( "Found Stage" )
   ADD_SUBDIRECTORY(examples) # right now the example targets Stage
-ENDIF( STAGE_FOUND )
+ENDIF( STAGE_FOUND AND RAPI_STAGE_FOUND )
 
 # check for Stage before descending
 ADD_SUBDIRECTORY(src)
